@@ -12,6 +12,7 @@ import {
   Clock,
   Coffee,
   Home,
+  LogOut,
   type LucideIcon,
   MousePointerClick,
   Pencil,
@@ -26,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { signOut } from "../_actions/auth";
 
 const FONT_LINK =
   "https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap";
@@ -437,7 +439,7 @@ export default function FinrHomeDesktop() {
 
           <button
             type="button"
-            className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
+            className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             Lançar
@@ -463,13 +465,24 @@ export default function FinrHomeDesktop() {
           </nav>
         </div>
 
-        <button
-          type="button"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
-        >
-          <Settings className="h-4 w-4" />
-          <span className="text-sm font-medium">Configurações</span>
-        </button>
+        <div className="space-y-1">
+          <button
+            type="button"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
+          >
+            <Settings className="h-4 w-4" />
+            <span className="text-sm font-medium">Configurações</span>
+          </button>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-sm font-medium">Sair</span>
+            </button>
+          </form>
+        </div>
       </aside>
 
       <main className="min-w-0 flex-1 px-10 py-10">
