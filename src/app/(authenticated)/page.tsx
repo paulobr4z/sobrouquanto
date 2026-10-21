@@ -6,9 +6,6 @@ import {
   Briefcase,
   Calendar,
   Car,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Coffee,
   Home,
@@ -17,7 +14,6 @@ import {
   MousePointerClick,
   Pencil,
   Plus,
-  RotateCcw,
   Settings,
   ShoppingCart,
   Tag,
@@ -27,47 +23,12 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { BalanceSummary } from "@/components/BalanceSummary";
+import { INITIAL_PERIOD, type Period } from "@/components/MonthSelector";
 import { signOut } from "../_actions/auth";
 
 const FONT_LINK =
   "https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap";
-
-const MONTHS_FULL = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
-];
-
-const MONTHS_SHORT = [
-  "Jan",
-  "Fev",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Out",
-  "Nov",
-  "Dez",
-];
-
-const TODAY: { month: number; year: number } = { month: 8, year: 2026 };
-
-type Period = {
-  month: number;
-  year: number;
-};
 
 type Transaction = {
   id: number;
@@ -155,149 +116,6 @@ function getDataForPeriod({ month, year }: Period) {
     .reduce((sum, transaction) => sum + transaction.amount, 0);
 
   return { transactions, income, expenses };
-}
-
-function MonthPicker({
-  selected,
-  onApply,
-}: {
-  selected: Period;
-  onApply: (period: Period) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [viewYear, setViewYear] = useState(selected.year);
-  const [draft, setDraft] = useState<Period>(selected);
-
-  const openPicker = () => {
-    setViewYear(selected.year);
-    setDraft(selected);
-    setOpen(true);
-  };
-
-  const draftIsToday = draft.month === TODAY.month && draft.year === TODAY.year;
-  const draftChanged =
-    draft.month !== selected.month || draft.year !== selected.year;
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => (open ? setOpen(false) : openPicker())}
-        className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
-      >
-        <span className="whitespace-nowrap text-sm font-semibold text-neutral-300">
-          {MONTHS_FULL[selected.month]} de {selected.year}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <>
-          <button
-            type="button"
-            aria-label="Fechar seletor de período"
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-10 cursor-default bg-transparent"
-          />
-          <div className="absolute right-0 top-9 z-20 w-80 rounded-2xl border border-neutral-800 bg-neutral-950 p-5 shadow-2xl shadow-black/60">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-bold text-neutral-50">Período</span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-neutral-800 text-neutral-500 transition-colors hover:text-neutral-300"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-
-            <div className="mb-4 flex items-center justify-center gap-6">
-              <button
-                type="button"
-                onClick={() => setViewYear((year) => year - 1)}
-                className="flex h-7 w-7 items-center justify-center text-neutral-500 transition-colors hover:text-neutral-300"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <span className="w-14 text-center text-base font-bold text-neutral-50 tabular-nums">
-                {viewYear}
-              </span>
-              <button
-                type="button"
-                onClick={() => setViewYear((year) => year + 1)}
-                className="flex h-7 w-7 items-center justify-center text-neutral-500 transition-colors hover:text-neutral-300"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mb-5 grid grid-cols-3 gap-1.5">
-              {MONTHS_SHORT.map((monthName, monthIndex) => {
-                const isDraft =
-                  draft.month === monthIndex && draft.year === viewYear;
-                const isToday =
-                  TODAY.month === monthIndex && TODAY.year === viewYear;
-                const isFuture =
-                  viewYear > TODAY.year ||
-                  (viewYear === TODAY.year && monthIndex > TODAY.month);
-
-                return (
-                  <button
-                    key={monthName}
-                    type="button"
-                    disabled={isFuture}
-                    onClick={() =>
-                      setDraft({ month: monthIndex, year: viewYear })
-                    }
-                    className={`rounded-xl border py-2.5 text-xs font-semibold transition-colors ${
-                      isDraft
-                        ? "border-emerald-400 text-emerald-400"
-                        : isFuture
-                          ? "cursor-not-allowed border-transparent text-neutral-800"
-                          : isToday
-                            ? "border-neutral-700 text-neutral-100 hover:bg-neutral-900"
-                            : "border-transparent text-neutral-400 hover:bg-neutral-900"
-                    }`}
-                  >
-                    {monthName}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setViewYear(TODAY.year);
-                  setDraft(TODAY);
-                }}
-                disabled={draftIsToday}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-neutral-800 px-3.5 py-2.5 text-xs font-semibold text-neutral-300 transition-colors hover:bg-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Mês atual
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onApply(draft);
-                  setOpen(false);
-                }}
-                disabled={!draftChanged}
-                className="flex-1 rounded-xl bg-emerald-500 px-3.5 py-2.5 text-xs font-bold text-neutral-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-emerald-500"
-              >
-                Aplicar período
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
 }
 
 function DetailPanel({
@@ -404,7 +222,7 @@ function DetailPanel({
 }
 
 export default function FinrHomeDesktop() {
-  const [period, setPeriod] = useState<Period>(TODAY);
+  const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -488,26 +306,7 @@ export default function FinrHomeDesktop() {
       <main className="min-w-0 flex-1 px-10 py-10">
         <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)_380px] items-start gap-8">
           <div className="min-w-0">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-neutral-400">Saldo</p>
-                <p className="mt-1 text-5xl font-extrabold tracking-tight text-neutral-50">
-                  R$ 50.000,00
-                </p>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <span className="text-sm font-semibold text-emerald-400">
-                    +8,4%
-                  </span>
-                  <span className="text-sm text-neutral-500">
-                    vs mês passado
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-1.5">
-                <MonthPicker selected={period} onApply={applyPeriod} />
-              </div>
-            </div>
+            <BalanceSummary period={period} onChangePeriod={applyPeriod} />
 
             <div className="mt-8 grid grid-cols-2 gap-4">
               <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
