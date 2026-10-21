@@ -21,11 +21,3 @@ body {
   color: var(--foreground);
   font-family: var(--font-urbanist);
 }
-
-button,
-a,
-input,
-textarea,
-select {
-  font: inherit;
-}
