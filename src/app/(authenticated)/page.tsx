@@ -308,7 +308,7 @@ export default function FinrHomeDesktop() {
           <div className="min-w-0">
             <BalanceSummary period={period} onChangePeriod={applyPeriod} />
 
-            <div className="mt-8 grid grid-cols-2 gap-4">
+            <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
                 <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15">
                   <ArrowDownRight className="h-4 w-4 text-emerald-400" />

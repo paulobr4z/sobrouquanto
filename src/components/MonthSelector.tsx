@@ -78,14 +78,14 @@ export function MonthSelector({ period, onChangePeriod }: MonthSelectorProps) {
         type="button"
         onClick={() => (open ? setOpen(false) : openPicker())}
         aria-expanded={open}
-        className="flex items-center gap-1.5 transition-opacity hover:opacity-80"
+        className="flex items-center gap-2 rounded-full border border-neutral-800 px-4 py-2 transition-colors hover:bg-neutral-800/60"
       >
-        <span className="whitespace-nowrap text-sm font-semibold text-neutral-300">
+        <span className="whitespace-nowrap text-sm font-medium text-neutral-100 sm:text-base">
           {MONTHS_FULL[period.month]} de {period.year}
         </span>
         <ChevronDown
           aria-hidden="true"
-          className={`h-4 w-4 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 shrink-0 text-neutral-100 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
