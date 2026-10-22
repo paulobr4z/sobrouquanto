@@ -114,15 +114,15 @@ export function BalanceSummary({
     <section
       aria-label="Resumo do saldo"
       aria-busy={isLoading}
-      className="rounded-3xl border border-neutral-800 bg-neutral-900 p-5 sm:p-6"
+      className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <p className="text-xl font-normal text-neutral-50 sm:text-2xl">Saldo</p>
+        <p className="text-lg font-normal text-neutral-50 sm:text-xl">Saldo</p>
         <MonthSelector period={period} onChangePeriod={onChangePeriod} />
       </div>
 
-      <div className="mt-3 min-w-0">
-        <p className="text-4xl font-bold tracking-tight text-neutral-50 sm:text-5xl">
+      <div className="mt-2 min-w-0">
+        <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
           {balanceLabel}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">

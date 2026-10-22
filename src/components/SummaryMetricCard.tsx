@@ -33,14 +33,16 @@ export function SummaryMetricCard({
   const styles = variantStyles[variant];
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
       <div
-        className={`mb-4 flex h-9 w-9 items-center justify-center rounded-full ${styles.iconContainer}`}
+        className={`mb-3 flex h-9 w-9 items-center justify-center rounded-full ${styles.iconContainer}`}
       >
         <Icon className={`h-4 w-4 ${styles.icon}`} />
       </div>
       <p className="text-sm font-medium text-neutral-400">{title}</p>
-      <p className="mt-0.5 text-2xl font-bold text-neutral-50">{value}</p>
+      <p className="mt-0.5 text-xl md:text-3xl font-bold text-neutral-50">
+        {value}
+      </p>
     </div>
   );
 }
