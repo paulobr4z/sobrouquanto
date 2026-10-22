@@ -130,109 +130,6 @@ function getDataForPeriod({ month, year }: Period) {
   return { transactions, income, expenses };
 }
 
-function DetailPanel({
-  tx,
-  onClose,
-  onDelete,
-}: {
-  tx: Transaction | null;
-  onClose: () => void;
-  onDelete: () => void;
-}) {
-  if (!tx) {
-    return (
-      <div className="flex h-full min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-800 px-8 text-center">
-        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900">
-          <MousePointerClick className="h-5 w-5 text-neutral-600" />
-        </div>
-        <p className="mb-1 text-sm font-semibold text-neutral-400">
-          Nenhuma movimentação selecionada
-        </p>
-        <p className="text-xs text-neutral-600">
-          Clique em um item da lista para ver os detalhes aqui.
-        </p>
-      </div>
-    );
-  }
-
-  const Icon = tx.icon;
-  const accent = tx.income ? "#34d399" : "#f5f5f5";
-  const rows = [
-    {
-      label: "Tipo",
-      value: tx.income ? "Entrada" : "Saída",
-      icon: tx.income ? ArrowDownRight : ArrowUpRight,
-    },
-    { label: "Categoria", value: tx.category, icon: Tag },
-    { label: "Data", value: tx.date, icon: Calendar },
-    { label: "Criado em", value: `${tx.date} às ${tx.time}`, icon: Clock },
-  ];
-
-  return (
-    <div className="flex flex-col rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <span className="text-sm font-semibold text-neutral-50">Detalhes</span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onDelete}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-800 bg-neutral-950 text-rose-400 transition-colors hover:bg-neutral-800"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-800 bg-neutral-950 text-neutral-500 transition-colors hover:text-neutral-300"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center pb-6">
-        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-neutral-800 bg-neutral-950">
-          <Icon className="h-6 w-6 text-neutral-300" />
-        </div>
-        <p className="mb-1 text-sm font-medium text-neutral-400">{tx.name}</p>
-        <p
-          className="text-3xl font-extrabold tracking-tight"
-          style={{ color: accent }}
-        >
-          {currency(tx.amount)}
-        </p>
-      </div>
-
-      <div className="mb-5 divide-y divide-neutral-800 rounded-xl border border-neutral-800 bg-neutral-950">
-        {rows.map((row) => {
-          const RowIcon = row.icon;
-
-          return (
-            <div key={row.label} className="flex items-center gap-3 px-4 py-3">
-              <RowIcon className="h-4 w-4 shrink-0 text-neutral-500" />
-              <span className="flex-1 text-xs text-neutral-500">
-                {row.label}
-              </span>
-              <span className="text-sm font-medium text-neutral-50">
-                {row.value}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <button
-        type="button"
-        className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-        style={{ backgroundColor: accent, color: "#0a0a0a" }}
-      >
-        <Pencil className="h-4 w-4" />
-        Editar lançamento
-      </button>
-    </div>
-  );
-}
-
 export default function FinrHomeDesktop() {
   const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -354,7 +251,7 @@ export default function FinrHomeDesktop() {
       </aside>
 
       <main className="min-w-0 flex-1 px-10 py-10">
-        <div className="grid max-w-6xl grid-cols-[minmax(0,1fr)_380px] items-start gap-8">
+        <div className="flex flex-col max-w-3xl w-full gap-8 my-0 mx-auto">
           <div className="min-w-0">
             <BalanceSummary period={period} onChangePeriod={applyPeriod} />
 
@@ -406,14 +303,6 @@ export default function FinrHomeDesktop() {
                 hasError={totalsError}
               />
             </div>
-          </div>
-
-          <div className="sticky top-10 min-h-[420px]">
-            <DetailPanel
-              tx={selectedTx}
-              onClose={() => setSelectedId(null)}
-              onDelete={() => setConfirmDelete(true)}
-            />
           </div>
         </div>
       </main>
