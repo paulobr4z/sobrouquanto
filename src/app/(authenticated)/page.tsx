@@ -4,23 +4,12 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Briefcase,
-  Calendar,
   Car,
-  Clock,
   Coffee,
-  Home,
-  LogOut,
   type LucideIcon,
-  MousePointerClick,
-  Pencil,
-  Plus,
-  Settings,
   ShoppingCart,
-  Tag,
   Trash2,
-  User,
   Wifi,
-  X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getMonthlyTotals } from "@/app/_actions/dashboard";
@@ -31,10 +20,6 @@ import {
 } from "@/components/CategoryExpenseSummary";
 import { INITIAL_PERIOD, type Period } from "@/components/MonthSelector";
 import { SummaryMetricCard } from "@/components/SummaryMetricCard";
-import { signOut } from "../_actions/auth";
-
-const FONT_LINK =
-  "https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap";
 
 type Transaction = {
   id: number;
@@ -182,131 +167,60 @@ export default function FinrHomeDesktop() {
     setSelectedId(null);
   };
 
-  const nav = [
-    { icon: Home, label: "Início", active: true },
-    { icon: User, label: "Perfil" },
-  ];
-
   return (
-    <div
-      style={{ fontFamily: "'Urbanist', sans-serif" }}
-      className="flex min-h-screen bg-neutral-950"
-    >
-      <link rel="stylesheet" href={FONT_LINK} />
+    <div className="mx-auto my-0 flex w-full max-w-3xl flex-col gap-8">
+      <div className="min-w-0">
+        <BalanceSummary period={period} onChangePeriod={applyPeriod} />
 
-      <aside className="flex w-60 shrink-0 flex-col justify-between border-r border-neutral-800 px-4 py-6">
-        <div>
-          <div className="mb-8 px-2">
-            <span className="text-lg font-bold leading-tight text-neutral-50">
-              Finanças Pessoais
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
-            Lançar
-          </button>
-
-          <nav className="space-y-1">
-            {nav.map(({ icon: Icon, label, active }) => (
-              <div
-                key={label}
-                className={`flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
-                  active
-                    ? "bg-neutral-900 text-neutral-50"
-                    : "text-neutral-500 hover:text-neutral-300"
-                }`}
-              >
-                <Icon
-                  className={`h-4 w-4 ${active ? "text-emerald-400" : ""}`}
-                  strokeWidth={active ? 2.5 : 2}
-                />
-                <span className="text-sm font-medium">{label}</span>
-              </div>
-            ))}
-          </nav>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <SummaryMetricCard
+            title="Entradas"
+            value={
+              isLoadingTotals
+                ? "Carregando..."
+                : totalsError || monthlyTotals === null
+                  ? "Indisponível"
+                  : currency(monthlyTotals.income)
+            }
+            icon={ArrowDownRight}
+            variant="income"
+          />
+          <SummaryMetricCard
+            title="Saídas"
+            value={
+              isLoadingTotals
+                ? "Carregando..."
+                : totalsError || monthlyTotals === null
+                  ? "Indisponível"
+                  : currency(monthlyTotals.expenses)
+            }
+            icon={ArrowUpRight}
+            variant="expense"
+          />
         </div>
-
-        <div className="space-y-1">
-          <button
-            type="button"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="text-sm font-medium">Configurações</span>
-          </button>
-          <form action={signOut}>
+        {totalsError && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <p role="alert" className="text-xs text-rose-300">
+              Não foi possível carregar entradas e saídas.
+            </p>
             <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
+              type="button"
+              onClick={() => void loadMonthlyTotals()}
+              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300"
             >
-              <LogOut className="h-4 w-4" />
-              <span className="text-sm font-medium">Sair</span>
+              Tentar novamente
             </button>
-          </form>
-        </div>
-      </aside>
-
-      <main className="min-w-0 flex-1 px-10 py-10">
-        <div className="flex flex-col max-w-3xl w-full gap-8 my-0 mx-auto">
-          <div className="min-w-0">
-            <BalanceSummary period={period} onChangePeriod={applyPeriod} />
-
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <SummaryMetricCard
-                title="Entradas"
-                value={
-                  isLoadingTotals
-                    ? "Carregando..."
-                    : totalsError || monthlyTotals === null
-                      ? "Indisponível"
-                      : currency(monthlyTotals.income)
-                }
-                icon={ArrowDownRight}
-                variant="income"
-              />
-              <SummaryMetricCard
-                title="Saídas"
-                value={
-                  isLoadingTotals
-                    ? "Carregando..."
-                    : totalsError || monthlyTotals === null
-                      ? "Indisponível"
-                      : currency(monthlyTotals.expenses)
-                }
-                icon={ArrowUpRight}
-                variant="expense"
-              />
-            </div>
-            {totalsError && (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <p role="alert" className="text-xs text-rose-300">
-                  Não foi possível carregar entradas e saídas.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void loadMonthlyTotals()}
-                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300"
-                >
-                  Tentar novamente
-                </button>
-              </div>
-            )}
-            <div className="mt-8">
-              <CategoryExpenseSummary
-                categories={monthlyTotals?.categories ?? null}
-                period={period}
-                isLoading={isLoadingTotals}
-                hasError={totalsError}
-              />
-            </div>
           </div>
+        )}
+        <div className="mt-8">
+          <CategoryExpenseSummary
+            categories={monthlyTotals?.categories ?? null}
+            period={period}
+            isLoading={isLoadingTotals}
+            hasError={totalsError}
+          />
         </div>
-      </main>
-
+      </div>
       {confirmDelete && (
         <div className="fixed inset-0 z-30 flex items-center justify-center">
           <button

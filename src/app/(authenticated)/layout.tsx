@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { getAuthenticatedUser } from "../../lib/supabase/auth";
+import Sidebar from "./sidebar";
 
 export default function AuthenticatedLayout({
   children,
@@ -10,7 +11,19 @@ export default function AuthenticatedLayout({
 }) {
   return (
     <Suspense fallback={null}>
-      <RequireAuthentication>{children}</RequireAuthentication>
+      <RequireAuthentication>
+        <div
+          style={{ fontFamily: "'Urbanist', sans-serif" }}
+          className="flex min-h-screen bg-neutral-950"
+        >
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
+          />
+          <Sidebar />
+          <main className="min-w-0 flex-1 px-10 py-10">{children}</main>
+        </div>
+      </RequireAuthentication>
     </Suspense>
   );
 }
