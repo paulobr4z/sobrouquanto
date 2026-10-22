@@ -25,6 +25,10 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getMonthlyTotals } from "@/app/_actions/dashboard";
 import { BalanceSummary } from "@/components/BalanceSummary";
+import {
+  type CategoryExpense,
+  CategoryExpenseSummary,
+} from "@/components/CategoryExpenseSummary";
 import { INITIAL_PERIOD, type Period } from "@/components/MonthSelector";
 import { SummaryMetricCard } from "@/components/SummaryMetricCard";
 import { signOut } from "../_actions/auth";
@@ -47,6 +51,7 @@ type Transaction = {
 type MonthlyTotals = {
   income: number;
   expenses: number;
+  categories: CategoryExpense[];
 };
 
 function currency(value: number): string {
@@ -393,57 +398,13 @@ export default function FinrHomeDesktop() {
                 </button>
               </div>
             )}
-
-            <div className="mt-10">
-              <h2 className="mb-2 text-base font-semibold text-neutral-50">
-                Movimentações
-              </h2>
-              <div className="divide-y divide-neutral-800">
-                {transactions.map((transaction) => {
-                  const Icon = transaction.icon;
-                  const active = transaction.id === selectedId;
-
-                  return (
-                    <button
-                      key={transaction.id}
-                      type="button"
-                      onClick={() => setSelectedId(transaction.id)}
-                      className={`flex w-full items-center gap-4 rounded-xl px-3 py-3.5 text-left transition-colors ${
-                        active ? "bg-neutral-900" : "hover:bg-neutral-900/60"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                          transaction.income
-                            ? "bg-emerald-500/15 text-emerald-400"
-                            : "bg-neutral-800 text-neutral-300"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-neutral-50">
-                          {transaction.name}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {transaction.date}
-                        </p>
-                      </div>
-
-                      <p
-                        className={`shrink-0 text-sm font-semibold ${
-                          transaction.income
-                            ? "text-emerald-400"
-                            : "text-neutral-50"
-                        }`}
-                      >
-                        {currency(transaction.amount)}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="mt-8">
+              <CategoryExpenseSummary
+                categories={monthlyTotals?.categories ?? null}
+                period={period}
+                isLoading={isLoadingTotals}
+                hasError={totalsError}
+              />
             </div>
           </div>
 

@@ -8,6 +8,12 @@ const PAGE_SIZE = 1000;
 type TransactionSummaryRow = {
   transaction_date: string;
   amount: number | string;
+  category?: string | null;
+};
+
+type MonthlyCategoryExpense = {
+  category: string;
+  amount: number;
 };
 
 function validatePeriod(month: number, year: number) {
@@ -26,7 +32,11 @@ function validatePeriod(month: number, year: number) {
 export async function getMonthlyTotals(
   month: number,
   year: number,
-): Promise<{ income: number; expenses: number }> {
+): Promise<{
+  income: number;
+  expenses: number;
+  categories: MonthlyCategoryExpense[];
+}> {
   validatePeriod(month, year);
 
   const user = await getAuthenticatedUser();
@@ -40,11 +50,12 @@ export async function getMonthlyTotals(
   const monthPrefix = currentStart.toISOString().slice(0, 7);
   const supabase = await createSupabaseServerClient();
   const totals = { income: 0, expenses: 0 };
+  const categoryTotals = new Map<string, number>();
 
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const { data, error } = await supabase
       .from("transactions")
-      .select("id, transaction_date, amount")
+      .select("id, transaction_date, amount, category")
       .eq("user_id", user.id)
       .gte("transaction_date", currentStart.toISOString().slice(0, 10))
       .lt("transaction_date", nextStart.toISOString().slice(0, 10))
@@ -74,6 +85,14 @@ export async function getMonthlyTotals(
         totals.income += amount;
       } else {
         totals.expenses += amount;
+        const category =
+          typeof row.category === "string" && row.category.trim()
+            ? row.category.trim()
+            : "Sem categoria";
+        categoryTotals.set(
+          category,
+          (categoryTotals.get(category) ?? 0) + Math.abs(amount),
+        );
       }
     }
 
@@ -82,7 +101,13 @@ export async function getMonthlyTotals(
     }
   }
 
-  return totals;
+  return {
+    ...totals,
+    categories: Array.from(categoryTotals, ([category, amount]) => ({
+      category,
+      amount,
+    })).sort((first, second) => second.amount - first.amount),
+  };
 }
 
 export async function getBalanceSummary(
