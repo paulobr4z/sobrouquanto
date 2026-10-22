@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { getAuthenticatedUser } from "../../lib/supabase/auth";
+import { DashboardDataCacheProvider } from "./dashboard-data-cache";
 import Sidebar from "./sidebar";
 
 export default function AuthenticatedLayout({
@@ -35,5 +36,9 @@ async function RequireAuthentication({ children }: { children: ReactNode }) {
     redirect("/login");
   }
 
-  return children;
+  return (
+    <DashboardDataCacheProvider key={user.id}>
+      {children}
+    </DashboardDataCacheProvider>
+  );
 }

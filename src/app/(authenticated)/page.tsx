@@ -12,7 +12,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getMonthlyTotals } from "@/app/_actions/dashboard";
+import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { BalanceSummary } from "@/components/BalanceSummary";
 import {
   type CategoryExpense,
@@ -119,21 +119,35 @@ export default function FinrHomeDesktop() {
   const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals | null>(
-    null,
+  const {
+    getMonthlyTotals: getCachedMonthlyTotals,
+    loadMonthlyTotals: fetchMonthlyTotals,
+  } = useDashboardDataCache();
+  const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals | null>(() =>
+    getCachedMonthlyTotals(period),
   );
-  const [isLoadingTotals, setIsLoadingTotals] = useState(true);
+  const [isLoadingTotals, setIsLoadingTotals] = useState(
+    () => getCachedMonthlyTotals(period) === null,
+  );
   const [totalsError, setTotalsError] = useState(false);
   const totalsRequestId = useRef(0);
 
   const loadMonthlyTotals = useCallback(async () => {
     const requestId = ++totalsRequestId.current;
+    const cachedTotals = getCachedMonthlyTotals(period);
+    if (cachedTotals) {
+      setMonthlyTotals(cachedTotals);
+      setIsLoadingTotals(false);
+      setTotalsError(false);
+      return;
+    }
+
     setIsLoadingTotals(true);
     setTotalsError(false);
     setMonthlyTotals(null);
 
     try {
-      const totals = await getMonthlyTotals(period.month, period.year);
+      const totals = await fetchMonthlyTotals(period);
 
       if (requestId === totalsRequestId.current) {
         setMonthlyTotals(totals);
@@ -148,7 +162,7 @@ export default function FinrHomeDesktop() {
         setIsLoadingTotals(false);
       }
     }
-  }, [period.month, period.year]);
+  }, [fetchMonthlyTotals, getCachedMonthlyTotals, period]);
 
   useEffect(() => {
     void loadMonthlyTotals();

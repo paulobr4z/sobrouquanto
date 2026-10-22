@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getBalanceSummary } from "@/app/_actions/dashboard";
+import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { MonthSelector, type Period } from "@/components/MonthSelector";
 
 type BalanceSummaryProps = {
@@ -18,19 +18,35 @@ export function BalanceSummary({
   period,
   onChangePeriod,
 }: BalanceSummaryProps) {
-  const [summary, setSummary] = useState<BalanceSummaryData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    getBalanceSummary: getCachedBalanceSummary,
+    loadBalanceSummary: fetchBalanceSummary,
+  } = useDashboardDataCache();
+  const [summary, setSummary] = useState<BalanceSummaryData | null>(() =>
+    getCachedBalanceSummary(period),
+  );
+  const [isLoading, setIsLoading] = useState(
+    () => getCachedBalanceSummary(period) === null,
+  );
   const [loadError, setLoadError] = useState(false);
   const requestIdRef = useRef(0);
 
   const loadSummary = useCallback(async () => {
     const requestId = ++requestIdRef.current;
+    const cachedSummary = getCachedBalanceSummary(period);
+    if (cachedSummary) {
+      setSummary(cachedSummary);
+      setIsLoading(false);
+      setLoadError(false);
+      return;
+    }
+
     setIsLoading(true);
     setLoadError(false);
     setSummary(null);
 
     try {
-      const data = await getBalanceSummary(period.month, period.year);
+      const data = await fetchBalanceSummary(period);
 
       if (requestId === requestIdRef.current) {
         setSummary(data);
@@ -45,7 +61,7 @@ export function BalanceSummary({
         setIsLoading(false);
       }
     }
-  }, [period.month, period.year]);
+  }, [fetchBalanceSummary, getCachedBalanceSummary, period]);
 
   useEffect(() => {
     void loadSummary();
