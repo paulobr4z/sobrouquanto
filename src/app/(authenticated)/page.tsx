@@ -22,9 +22,11 @@ import {
   Wifi,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getMonthlyTotals } from "@/app/_actions/dashboard";
 import { BalanceSummary } from "@/components/BalanceSummary";
 import { INITIAL_PERIOD, type Period } from "@/components/MonthSelector";
+import { SummaryMetricCard } from "@/components/SummaryMetricCard";
 import { signOut } from "../_actions/auth";
 
 const FONT_LINK =
@@ -40,6 +42,11 @@ type Transaction = {
   time: string;
   income?: boolean;
   date: string;
+};
+
+type MonthlyTotals = {
+  income: number;
+  expenses: number;
 };
 
 function currency(value: number): string {
@@ -225,8 +232,46 @@ export default function FinrHomeDesktop() {
   const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [monthlyTotals, setMonthlyTotals] = useState<MonthlyTotals | null>(
+    null,
+  );
+  const [isLoadingTotals, setIsLoadingTotals] = useState(true);
+  const [totalsError, setTotalsError] = useState(false);
+  const totalsRequestId = useRef(0);
 
-  const { transactions, income, expenses } = getDataForPeriod(period);
+  const loadMonthlyTotals = useCallback(async () => {
+    const requestId = ++totalsRequestId.current;
+    setIsLoadingTotals(true);
+    setTotalsError(false);
+    setMonthlyTotals(null);
+
+    try {
+      const totals = await getMonthlyTotals(period.month, period.year);
+
+      if (requestId === totalsRequestId.current) {
+        setMonthlyTotals(totals);
+      }
+    } catch (error) {
+      console.error("Failed to load monthly transaction totals.", error);
+      if (requestId === totalsRequestId.current) {
+        setTotalsError(true);
+      }
+    } finally {
+      if (requestId === totalsRequestId.current) {
+        setIsLoadingTotals(false);
+      }
+    }
+  }, [period.month, period.year]);
+
+  useEffect(() => {
+    void loadMonthlyTotals();
+
+    return () => {
+      totalsRequestId.current += 1;
+    };
+  }, [loadMonthlyTotals]);
+
+  const { transactions } = getDataForPeriod(period);
   const selectedTx =
     transactions.find((transaction) => transaction.id === selectedId) ?? null;
 
@@ -309,26 +354,45 @@ export default function FinrHomeDesktop() {
             <BalanceSummary period={period} onChangePeriod={applyPeriod} />
 
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-                <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15">
-                  <ArrowDownRight className="h-4 w-4 text-emerald-400" />
-                </div>
-                <p className="text-sm font-medium text-neutral-400">Entradas</p>
-                <p className="mt-0.5 text-2xl font-bold text-neutral-50">
-                  {currency(income)}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-5">
-                <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-800">
-                  <ArrowUpRight className="h-4 w-4 text-neutral-300" />
-                </div>
-                <p className="text-sm font-medium text-neutral-400">Saídas</p>
-                <p className="mt-0.5 text-2xl font-bold text-neutral-50">
-                  {currency(expenses)}
-                </p>
-              </div>
+              <SummaryMetricCard
+                title="Entradas"
+                value={
+                  isLoadingTotals
+                    ? "Carregando..."
+                    : totalsError || monthlyTotals === null
+                      ? "Indisponível"
+                      : currency(monthlyTotals.income)
+                }
+                icon={ArrowDownRight}
+                variant="income"
+              />
+              <SummaryMetricCard
+                title="Saídas"
+                value={
+                  isLoadingTotals
+                    ? "Carregando..."
+                    : totalsError || monthlyTotals === null
+                      ? "Indisponível"
+                      : currency(monthlyTotals.expenses)
+                }
+                icon={ArrowUpRight}
+                variant="expense"
+              />
             </div>
+            {totalsError && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <p role="alert" className="text-xs text-rose-300">
+                  Não foi possível carregar entradas e saídas.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void loadMonthlyTotals()}
+                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
 
             <div className="mt-10">
               <h2 className="mb-2 text-base font-semibold text-neutral-50">
