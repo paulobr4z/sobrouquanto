@@ -76,7 +76,7 @@ export default function TransactionsPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
           Movimentações
         </h1>
         <MonthSelector period={period} onChangePeriod={setPeriod} />
@@ -111,12 +111,8 @@ export default function TransactionsPage() {
       </fieldset>
 
       <section aria-busy={isLoading}>
-        <h2 className="mb-5 text-lg font-bold text-neutral-50">
-          Movimentações
-        </h2>
-
         {isLoading ? (
-          <p className="py-6 text-sm text-neutral-500">
+          <p className="py-4 text-sm text-neutral-500">
             Carregando movimentações...
           </p>
         ) : hasError ? (
