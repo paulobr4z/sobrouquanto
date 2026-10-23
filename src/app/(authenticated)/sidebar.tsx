@@ -1,6 +1,15 @@
 "use client";
 
-import { Home, LogOut, Menu, Plus, Settings, User, X } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Home,
+  LogOut,
+  Menu,
+  Plus,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -8,6 +17,7 @@ import { signOut } from "../_actions/auth";
 
 const navItems = [
   { href: "/", icon: Home, label: "Início" },
+  { href: "/transactions", icon: ArrowLeftRight, label: "Movimentações" },
   { href: "/profile", icon: User, label: "Perfil" },
 ];
 
