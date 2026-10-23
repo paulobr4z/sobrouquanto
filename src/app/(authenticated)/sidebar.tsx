@@ -55,7 +55,7 @@ export default function Sidebar() {
         id="authenticated-sidebar"
         className={`fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 flex-col justify-between border-r border-neutral-800 bg-neutral-950 px-4 pb-6 pt-20 transition-transform duration-200 ${
           isOpen ? "visible translate-x-0" : "invisible -translate-x-full"
-        } md:static md:visible md:translate-x-0 md:py-6`}
+        } md:sticky md:top-0 md:h-dvh md:self-start md:visible md:translate-x-0 md:py-6`}
       >
         <div>
           <div className="mb-8 px-2">
