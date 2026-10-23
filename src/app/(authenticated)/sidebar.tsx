@@ -8,6 +8,7 @@ import {
   Plus,
   Settings,
   User,
+  Wallet,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { signOut } from "../_actions/auth";
 const navItems = [
   { href: "/", icon: Home, label: "Início" },
   { href: "/transactions", icon: ArrowLeftRight, label: "Movimentações" },
+  { href: "/budget", icon: Wallet, label: "Orçamento" },
   { href: "/profile", icon: User, label: "Perfil" },
 ];
 
