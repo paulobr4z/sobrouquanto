@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { isInvalidSessionError } from "./lib/supabase/auth-errors";
 import { getSupabaseConfig } from "./lib/supabase/env";
 
 export async function proxy(request: NextRequest) {
@@ -31,7 +32,11 @@ export async function proxy(request: NextRequest) {
 
   const { error } = await supabase.auth.getClaims();
 
-  if (error && error.name !== "AuthSessionMissingError") {
+  if (
+    error &&
+    error.name !== "AuthSessionMissingError" &&
+    !isInvalidSessionError(error)
+  ) {
     throw error;
   }
 
