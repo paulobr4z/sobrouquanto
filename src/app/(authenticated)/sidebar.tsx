@@ -55,6 +55,15 @@ export default function Sidebar() {
         <span className="text-lg font-bold leading-tight text-neutral-50 ml-4">
           Sobrou Quanto?
         </span>
+        <Link
+          href="/transactions/new"
+          onClick={() => setIsOpen(false)}
+          aria-label="Lançar movimentação"
+          className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-0 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98] md:w-auto md:px-4"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />
+          <span className="hidden md:inline">Lançar</span>
+        </Link>
       </header>
 
       <aside
@@ -64,15 +73,6 @@ export default function Sidebar() {
         } md:sticky md:top-0 md:h-dvh md:self-start md:visible md:translate-x-0 md:pt-20`}
       >
         <div>
-          <Link
-            href="/transactions/new"
-            onClick={() => setIsOpen(false)}
-            className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
-            Lançar
-          </Link>
-
           <nav className="space-y-1">
             {navItems.map(({ href, icon: Icon, label }) => {
               const active =
