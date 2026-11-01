@@ -22,7 +22,7 @@ export default function AuthenticatedLayout({
             href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
           />
           <Sidebar />
-          <main className="min-w-0 flex-1 px-4 pb-8 pt-20 md:px-10 md:py-10">
+          <main className="min-w-0 flex-1 px-4 pb-8 pt-20 md:px-10 md:py-20">
             {children}
           </main>
         </div>

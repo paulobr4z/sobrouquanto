@@ -29,21 +29,6 @@ export default function Sidebar() {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
-        aria-controls="authenticated-sidebar"
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((open) => !open)}
-        className="fixed left-4 top-4 z-[60] rounded-lg bg-neutral-900 p-2 text-neutral-50 transition hover:bg-neutral-800 md:hidden"
-      >
-        {isOpen ? (
-          <X className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        )}
-      </button>
-
       {isOpen && (
         <button
           type="button"
@@ -53,19 +38,33 @@ export default function Sidebar() {
         />
       )}
 
+      <header className="fixed left-0 top-0 z-80 w-full border-b border-neutral-800 bg-neutral-950 px-4 min-h-16 flex items-center justify-start">
+        <button
+          type="button"
+          aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
+          aria-controls="authenticated-sidebar"
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((open) => !open)}
+          className="rounded-lg bg-neutral-900 p-2 text-neutral-50 transition hover:bg-neutral-800 md:hidden"
+        >
+          {isOpen ? (
+            <X className="h-5 w-5" aria-hidden="true" />
+          ) : (
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          )}
+        </button>
+        <span className="text-lg font-bold leading-tight text-neutral-50 ml-4">
+          Sobrou Quanto?
+        </span>
+      </header>
+
       <aside
         id="authenticated-sidebar"
         className={`fixed inset-y-0 left-0 z-50 flex w-60 shrink-0 flex-col justify-between border-r border-neutral-800 bg-neutral-950 px-4 pb-6 pt-20 transition-transform duration-200 ${
           isOpen ? "visible translate-x-0" : "invisible -translate-x-full"
-        } md:sticky md:top-0 md:h-dvh md:self-start md:visible md:translate-x-0 md:py-6`}
+        } md:sticky md:top-0 md:h-dvh md:self-start md:visible md:translate-x-0 md:pt-20`}
       >
         <div>
-          <div className="mb-8 px-2">
-            <span className="text-lg font-bold leading-tight text-neutral-50">
-              Sobrou Quanto?
-            </span>
-          </div>
-
           <button
             type="button"
             className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
@@ -102,13 +101,6 @@ export default function Sidebar() {
         </div>
 
         <div className="space-y-1">
-          <button
-            type="button"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-neutral-500 transition-colors hover:text-neutral-300"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="text-sm font-medium">Configurações</span>
-          </button>
           <form action={signOut}>
             <button
               type="submit"
