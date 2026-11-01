@@ -1,5 +1,6 @@
 "use client";
 
+import { Repeat } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MonthlyTransaction } from "@/app/_actions/dashboard";
 import { getMonthlyTransactions } from "@/app/_actions/dashboard";
@@ -149,14 +150,22 @@ export default function TransactionsPage() {
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium text-neutral-100 sm:text-lg">
-                    {transaction.category}
+                    {transaction.name}
                   </p>
-                  <p className="mt-0.5 text-sm text-neutral-500">
-                    {transactionType === "expense" ? "Saída" : "Entrada"} ·{" "}
-                    {dateFormatter.format(
-                      new Date(`${transaction.transactionDate}T00:00:00Z`),
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-500">
+                    <span>
+                      {transaction.category} ·{" "}
+                      {dateFormatter.format(
+                        new Date(`${transaction.transactionDate}T00:00:00Z`),
+                      )}
+                    </span>
+                    {transaction.isRecurring && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
+                        <Repeat aria-hidden="true" className="h-3 w-3" />
+                        Recorrente
+                      </span>
                     )}
-                  </p>
+                  </div>
                 </div>
 
                 <p className="shrink-0 text-right text-base font-bold text-neutral-100 sm:text-lg">

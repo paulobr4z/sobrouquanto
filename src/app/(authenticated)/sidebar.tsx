@@ -6,7 +6,6 @@ import {
   LogOut,
   Menu,
   Plus,
-  Settings,
   User,
   Wallet,
   X,
@@ -65,17 +64,20 @@ export default function Sidebar() {
         } md:sticky md:top-0 md:h-dvh md:self-start md:visible md:translate-x-0 md:pt-20`}
       >
         <div>
-          <button
-            type="button"
+          <Link
+            href="/transactions/new"
+            onClick={() => setIsOpen(false)}
             className="mb-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-2.5 text-sm font-bold text-neutral-950 transition hover:bg-emerald-400 active:scale-[0.98]"
           >
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             Lançar
-          </button>
+          </Link>
 
           <nav className="space-y-1">
             {navItems.map(({ href, icon: Icon, label }) => {
-              const active = pathname === href;
+              const active =
+                pathname === href ||
+                (href !== "/" && pathname.startsWith(`${href}/`));
 
               return (
                 <Link

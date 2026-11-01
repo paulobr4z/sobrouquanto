@@ -16,6 +16,7 @@ type BalanceSummary = Awaited<ReturnType<typeof getBalanceSummary>>;
 type Cache<T> = {
   values: Map<string, T>;
   requests: Map<string, Promise<T>>;
+  generation: number;
 };
 
 type DashboardCache = {
@@ -23,6 +24,7 @@ type DashboardCache = {
   loadMonthlyTotals: (period: Period) => Promise<MonthlyTotals>;
   getBalanceSummary: (period: Period) => BalanceSummary | null;
   loadBalanceSummary: (period: Period) => Promise<BalanceSummary>;
+  invalidate: () => void;
 };
 
 const DashboardDataCacheContext = createContext<DashboardCache | null>(null);
@@ -46,14 +48,19 @@ function loadCached<T>(
     return pendingRequest;
   }
 
+  const generation = cache.generation;
   const request = load().then(
     (value) => {
-      cache.values.set(key, value);
-      cache.requests.delete(key);
+      if (generation === cache.generation) {
+        cache.values.set(key, value);
+        cache.requests.delete(key);
+      }
       return value;
     },
     (error: unknown) => {
-      cache.requests.delete(key);
+      if (generation === cache.generation) {
+        cache.requests.delete(key);
+      }
       throw error;
     },
   );
@@ -70,10 +77,12 @@ export function DashboardDataCacheProvider({
   const monthlyTotalsCache = useRef<Cache<MonthlyTotals>>({
     values: new Map(),
     requests: new Map(),
+    generation: 0,
   });
   const balanceSummaryCache = useRef<Cache<BalanceSummary>>({
     values: new Map(),
     requests: new Map(),
+    generation: 0,
   });
 
   const cache = useMemo<DashboardCache>(
@@ -90,6 +99,14 @@ export function DashboardDataCacheProvider({
         loadCached(balanceSummaryCache.current, periodKey(period), () =>
           getBalanceSummary(period.month, period.year),
         ),
+      invalidate: () => {
+        monthlyTotalsCache.current.generation += 1;
+        monthlyTotalsCache.current.values.clear();
+        monthlyTotalsCache.current.requests.clear();
+        balanceSummaryCache.current.generation += 1;
+        balanceSummaryCache.current.values.clear();
+        balanceSummaryCache.current.requests.clear();
+      },
     }),
     [],
   );
