@@ -5,15 +5,15 @@ import {
   ArrowUpRight,
   CalendarDays,
   Repeat,
-  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
-import { categories } from "@/data/categories";
+import type { Category } from "@/data/categories";
 import { formatBrazilianAmountInput } from "@/lib/currency";
+import { CategoryPicker } from "./category-picker";
 
 const initialState: TransactionFormState = {
   status: "idle",
@@ -30,6 +30,11 @@ export function NewTransactionForm() {
   );
   const { invalidate } = useDashboardDataCache();
   const [amountInput, setAmountInput] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [categoryError, setCategoryError] = useState(false);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -37,9 +42,17 @@ export function NewTransactionForm() {
     }
   }, [invalidate, state.status]);
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    if (!selectedCategory) {
+      event.preventDefault();
+      setCategoryError(true);
+      setIsCategoryDialogOpen(true);
+    }
+  };
+
   return (
     <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 sm:p-6">
-      <form action={formAction}>
+      <form action={formAction} onSubmit={handleSubmit}>
         <fieldset>
           <legend className="mb-3 text-sm font-semibold text-neutral-200">
             Tipo de movimentação
@@ -125,28 +138,17 @@ export function NewTransactionForm() {
             >
               Categoria
             </label>
-            <div className="relative">
-              <Tag
-                aria-hidden="true"
-                className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
-              />
-              <select
-                id="transaction-category"
-                name="category"
-                defaultValue=""
-                required
-                className={`${fieldClassName} appearance-none pl-11`}
-              >
-                <option value="" disabled>
-                  Selecione uma categoria
-                </option>
-                {categories.map((category) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CategoryPicker
+              selectedCategory={selectedCategory}
+              isOpen={isCategoryDialogOpen}
+              hasError={categoryError}
+              onOpenChange={setIsCategoryDialogOpen}
+              onSelect={(category) => {
+                setSelectedCategory(category);
+                setCategoryError(false);
+                setIsCategoryDialogOpen(false);
+              }}
+            />
           </div>
 
           <div className="sm:col-span-2">
