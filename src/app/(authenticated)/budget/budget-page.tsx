@@ -17,16 +17,18 @@ import {
   saveSpendingBudget,
 } from "@/app/_actions/budget";
 import {
-  calculateSpendingMetrics,
   formatAmountForInput,
   formatBrazilianAmountInput,
+  parseBrazilianAmount,
+} from "@/lib/currency";
+import {
+  calculateSpendingMetrics,
   formatCurrency,
   formatDateRange,
   formatPaceLabel,
   formatPercentage,
   getTodayIsoDate,
   isIsoDate,
-  parseBrazilianAmount,
   roundMoney,
   type SpendingBudget,
   type SpendingBudgetMetrics,

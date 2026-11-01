@@ -8,11 +8,12 @@ import {
   Tag,
 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { categories } from "@/data/categories";
+import { formatBrazilianAmountInput } from "@/lib/currency";
 
 const initialState: TransactionFormState = {
   status: "idle",
@@ -28,6 +29,7 @@ export function NewTransactionForm() {
     initialState,
   );
   const { invalidate } = useDashboardDataCache();
+  const [amountInput, setAmountInput] = useState("");
 
   useEffect(() => {
     if (state.status === "success") {
@@ -103,11 +105,13 @@ export function NewTransactionForm() {
               <input
                 id="transaction-amount"
                 name="amount"
-                type="number"
+                type="text"
                 inputMode="decimal"
-                min="0.01"
-                step="0.01"
                 required
+                value={amountInput}
+                onChange={(event) =>
+                  setAmountInput(formatBrazilianAmountInput(event.target.value))
+                }
                 placeholder="0,00"
                 className={`${fieldClassName} pl-12`}
               />

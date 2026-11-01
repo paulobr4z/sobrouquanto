@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { categories } from "@/data/categories";
+import { parseBrazilianAmount } from "@/lib/currency";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { createSupabaseActionClient } from "@/lib/supabase/server";
 
@@ -53,7 +54,7 @@ export async function createTransaction(
   const isRecurring = formData.get("isRecurring") === "on";
   const category = categories.find(({ name }) => name === categoryName);
   const dayOfMonth = getTransactionDay(transactionDate);
-  const amount = Number(amountInput);
+  const amount = parseBrazilianAmount(amountInput);
 
   if (!name) {
     return { status: "error", message: "Informe uma descrição." };
@@ -67,11 +68,7 @@ export async function createTransaction(
     return { status: "error", message: "Informe uma data válida." };
   }
 
-  if (
-    !/^\d+(?:\.\d+)?$/.test(amountInput) ||
-    !Number.isFinite(amount) ||
-    amount <= 0
-  ) {
+  if (amount === null || amount <= 0) {
     return { status: "error", message: "Informe um valor maior que zero." };
   }
 
@@ -93,7 +90,7 @@ export async function createTransaction(
     name,
     category: category.name,
     transaction_date: transactionDate,
-    amount: amountInput,
+    amount: amount.toFixed(2),
     icon: category.icon,
     income: transactionType === "income",
     recurrence_id: isRecurring ? randomUUID() : null,
