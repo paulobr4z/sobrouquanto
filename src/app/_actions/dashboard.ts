@@ -70,6 +70,61 @@ function getMonthlyOccurrenceDate(
   return new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10);
 }
 
+async function getActiveMonthlyRecurrences(
+  userId: string,
+  beforeDate: string,
+): Promise<TransactionSummaryRow[]> {
+  const supabase = await createSupabaseServerClient();
+  const recurringTransactions = new Map<string, TransactionSummaryRow>();
+
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select(
+        "id, name, transaction_date, amount, income, category, recurrence_id, recurrence_day_of_month",
+      )
+      .eq("user_id", userId)
+      .eq("recurrence_active", true)
+      .eq("recurrence_frequency", "monthly")
+      .lt("transaction_date", beforeDate)
+      .order("transaction_date", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    const rows = data as TransactionSummaryRow[];
+
+    for (const row of rows) {
+      const recurrenceDay = row.recurrence_day_of_month;
+      if (
+        typeof row.recurrence_id !== "string" ||
+        !row.recurrence_id ||
+        typeof recurrenceDay !== "number" ||
+        !Number.isInteger(recurrenceDay) ||
+        recurrenceDay < 1 ||
+        recurrenceDay > 31
+      ) {
+        throw new Error(
+          "Os dados de recorrência de uma movimentação recebida são inválidos.",
+        );
+      }
+
+      if (!recurringTransactions.has(row.recurrence_id)) {
+        recurringTransactions.set(row.recurrence_id, row);
+      }
+    }
+
+    if (rows.length < PAGE_SIZE) {
+      break;
+    }
+  }
+
+  return Array.from(recurringTransactions.values());
+}
+
 export async function getMonthlyTransactions(
   month: number,
   year: number,
@@ -134,54 +189,12 @@ export async function getMonthlyTransactions(
     }
   }
 
-  const recurringTransactions = new Map<string, TransactionSummaryRow>();
+  const recurringTransactions = await getActiveMonthlyRecurrences(
+    user.id,
+    nextStart.toISOString().slice(0, 10),
+  );
 
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from("transactions")
-      .select(
-        "id, name, transaction_date, amount, income, category, recurrence_id, recurrence_frequency, recurrence_day_of_month, recurrence_active",
-      )
-      .eq("user_id", user.id)
-      .eq("recurrence_active", true)
-      .eq("recurrence_frequency", "monthly")
-      .lt("transaction_date", nextStart.toISOString().slice(0, 10))
-      .order("transaction_date", { ascending: true })
-      .order("id", { ascending: true })
-      .range(offset, offset + PAGE_SIZE - 1);
-
-    if (error) {
-      throw error;
-    }
-
-    const rows = data as TransactionSummaryRow[];
-
-    for (const row of rows) {
-      const recurrenceDay = row.recurrence_day_of_month;
-      if (
-        typeof row.recurrence_id !== "string" ||
-        !row.recurrence_id ||
-        typeof recurrenceDay !== "number" ||
-        !Number.isInteger(recurrenceDay) ||
-        recurrenceDay < 1 ||
-        recurrenceDay > 31
-      ) {
-        throw new Error(
-          "Os dados de recorrência de uma movimentação recebida são inválidos.",
-        );
-      }
-
-      if (!recurringTransactions.has(row.recurrence_id)) {
-        recurringTransactions.set(row.recurrence_id, row);
-      }
-    }
-
-    if (rows.length < PAGE_SIZE) {
-      break;
-    }
-  }
-
-  for (const [recurrenceId, row] of recurringTransactions) {
+  for (const row of recurringTransactions) {
     const amount = getSignedAmount(row);
     const recurrenceDay = row.recurrence_day_of_month;
     if (typeof recurrenceDay !== "number") {
@@ -204,7 +217,7 @@ export async function getMonthlyTransactions(
     }
 
     transactions.push({
-      id: `recurring:${recurrenceId}:${monthPrefix}`,
+      id: `recurring:${row.recurrence_id}:${monthPrefix}`,
       name: row.name,
       transactionDate,
       amount,
@@ -291,6 +304,31 @@ export async function getMonthlyTotals(
     }
   }
 
+  const recurringTransactions = await getActiveMonthlyRecurrences(
+    user.id,
+    nextStart.toISOString().slice(0, 10),
+  );
+
+  for (const row of recurringTransactions) {
+    if (row.transaction_date.slice(0, 7) === monthPrefix) {
+      continue;
+    }
+
+    const amount = getSignedAmount(row);
+    if (row.income) {
+      totals.income += Math.abs(amount);
+      continue;
+    }
+
+    const expense = Math.abs(amount);
+    totals.expenses -= expense;
+    const category =
+      typeof row.category === "string" && row.category.trim()
+        ? row.category.trim()
+        : "Sem categoria";
+    categoryTotals.set(category, (categoryTotals.get(category) ?? 0) + expense);
+  }
+
   return {
     ...totals,
     categories: Array.from(categoryTotals, ([category, amount]) => ({
@@ -352,6 +390,23 @@ export async function getBalanceSummary(
 
     if (rows.length < PAGE_SIZE) {
       break;
+    }
+  }
+
+  const recurringTransactions = await getActiveMonthlyRecurrences(
+    user.id,
+    nextStart.toISOString().slice(0, 10),
+  );
+
+  for (const row of recurringTransactions) {
+    const amount = getSignedAmount(row);
+    const transactionMonth = row.transaction_date.slice(0, 7);
+
+    if (transactionMonth < previousMonthPrefix) {
+      totals.previous += amount;
+      totals.current += amount;
+    } else if (transactionMonth === previousMonthPrefix) {
+      totals.current += amount;
     }
   }
 
