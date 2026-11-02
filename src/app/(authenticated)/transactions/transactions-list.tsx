@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MonthlyTransaction } from "@/app/_actions/dashboard";
-import { getMonthlyTransactions } from "@/app/_actions/dashboard";
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import {
@@ -37,15 +36,17 @@ export function TransactionsList({
   initialSuccessType: TransactionType | null;
 }) {
   const router = useRouter();
-  const { invalidate } = useDashboardDataCache();
+  const { getMonthlyTransactions, invalidate, loadMonthlyTransactions } =
+    useDashboardDataCache();
   const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
+  const cachedTransactions = getMonthlyTransactions(period);
   const [transactionType, setTransactionType] =
     useState<TransactionType>(initialType);
   const [successType, setSuccessType] = useState(initialSuccessType);
   const [transactions, setTransactions] = useState<MonthlyTransaction[] | null>(
-    null,
+    cachedTransactions,
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(cachedTransactions === null);
   const [hasError, setHasError] = useState(false);
   const requestId = useRef(0);
 
@@ -65,11 +66,18 @@ export function TransactionsList({
 
   const loadTransactions = useCallback(async () => {
     const currentRequestId = ++requestId.current;
+    const cachedResult = getMonthlyTransactions(period);
+    if (cachedResult) {
+      setTransactions(cachedResult);
+      setIsLoading(false);
+      setHasError(false);
+      return;
+    }
+
     setIsLoading(true);
     setHasError(false);
-
     try {
-      const result = await getMonthlyTransactions(period.month, period.year);
+      const result = await loadMonthlyTransactions(period);
       if (currentRequestId === requestId.current) {
         setTransactions(result);
       }
@@ -83,7 +91,7 @@ export function TransactionsList({
         setIsLoading(false);
       }
     }
-  }, [period]);
+  }, [getMonthlyTransactions, loadMonthlyTransactions, period]);
 
   useEffect(() => {
     void loadTransactions();

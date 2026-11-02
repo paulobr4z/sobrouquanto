@@ -7,7 +7,12 @@ import {
   useMemo,
   useRef,
 } from "react";
-import { getBalanceSummary, getMonthlyTotals } from "@/app/_actions/dashboard";
+import type { MonthlyTransaction } from "@/app/_actions/dashboard";
+import {
+  getMonthlyTransactions as fetchMonthlyTransactions,
+  getBalanceSummary,
+  getMonthlyTotals,
+} from "@/app/_actions/dashboard";
 import type { Period } from "@/components/MonthSelector";
 
 type MonthlyTotals = Awaited<ReturnType<typeof getMonthlyTotals>>;
@@ -24,6 +29,8 @@ type DashboardCache = {
   loadMonthlyTotals: (period: Period) => Promise<MonthlyTotals>;
   getBalanceSummary: (period: Period) => BalanceSummary | null;
   loadBalanceSummary: (period: Period) => Promise<BalanceSummary>;
+  getMonthlyTransactions: (period: Period) => MonthlyTransaction[] | null;
+  loadMonthlyTransactions: (period: Period) => Promise<MonthlyTransaction[]>;
   invalidate: () => void;
 };
 
@@ -84,6 +91,11 @@ export function DashboardDataCacheProvider({
     requests: new Map(),
     generation: 0,
   });
+  const monthlyTransactionsCache = useRef<Cache<MonthlyTransaction[]>>({
+    values: new Map(),
+    requests: new Map(),
+    generation: 0,
+  });
 
   const cache = useMemo<DashboardCache>(
     () => ({
@@ -99,6 +111,12 @@ export function DashboardDataCacheProvider({
         loadCached(balanceSummaryCache.current, periodKey(period), () =>
           getBalanceSummary(period.month, period.year),
         ),
+      getMonthlyTransactions: (period) =>
+        monthlyTransactionsCache.current.values.get(periodKey(period)) ?? null,
+      loadMonthlyTransactions: (period) =>
+        loadCached(monthlyTransactionsCache.current, periodKey(period), () =>
+          fetchMonthlyTransactions(period.month, period.year),
+        ),
       invalidate: () => {
         monthlyTotalsCache.current.generation += 1;
         monthlyTotalsCache.current.values.clear();
@@ -106,6 +124,9 @@ export function DashboardDataCacheProvider({
         balanceSummaryCache.current.generation += 1;
         balanceSummaryCache.current.values.clear();
         balanceSummaryCache.current.requests.clear();
+        monthlyTransactionsCache.current.generation += 1;
+        monthlyTransactionsCache.current.values.clear();
+        monthlyTransactionsCache.current.requests.clear();
       },
     }),
     [],
