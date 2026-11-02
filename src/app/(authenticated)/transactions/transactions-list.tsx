@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MonthlyTransaction } from "@/app/_actions/dashboard";
 import { getMonthlyTransactions } from "@/app/_actions/dashboard";
+import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import {
   INITIAL_PERIOD,
@@ -36,6 +37,7 @@ export function TransactionsList({
   initialSuccessType: TransactionType | null;
 }) {
   const router = useRouter();
+  const { invalidate } = useDashboardDataCache();
   const [period, setPeriod] = useState<Period>(INITIAL_PERIOD);
   const [transactionType, setTransactionType] =
     useState<TransactionType>(initialType);
@@ -54,6 +56,12 @@ export function TransactionsList({
   useEffect(() => {
     setSuccessType(initialSuccessType);
   }, [initialSuccessType]);
+
+  useEffect(() => {
+    if (initialSuccessType) {
+      invalidate();
+    }
+  }, [initialSuccessType, invalidate]);
 
   const loadTransactions = useCallback(async () => {
     const currentRequestId = ++requestId.current;

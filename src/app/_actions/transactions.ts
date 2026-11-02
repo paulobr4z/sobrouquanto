@@ -14,7 +14,6 @@ import {
 export type TransactionFormState = {
   status: "idle" | "error" | "success";
   message: string;
-  transactionType?: "expense" | "income";
 };
 
 export type TransactionDetails = {
@@ -301,11 +300,9 @@ export async function createTransaction(
   revalidatePath("/");
   revalidatePath("/transactions");
 
-  return {
-    status: "success",
-    message: "Movimentação salva com sucesso.",
-    transactionType: values.transactionType,
-  };
+  redirect(
+    `/transactions?type=${values.transactionType}&created=${values.transactionType}`,
+  );
 }
 
 export async function updateTransaction(

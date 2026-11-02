@@ -7,11 +7,9 @@ import {
   Repeat,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
-import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import type { Category } from "@/data/categories";
 import { formatBrazilianAmountInput } from "@/lib/currency";
 import { CategoryPicker } from "./category-picker";
@@ -25,13 +23,10 @@ const fieldClassName =
   "h-12 w-full rounded-xl border border-neutral-800 bg-neutral-900 px-4 text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10";
 
 export function NewTransactionForm() {
-  const router = useRouter();
   const [state, formAction, isPending] = useActionState(
     createTransaction,
     initialState,
   );
-  const { invalidate } = useDashboardDataCache();
-  const formRef = useRef<HTMLFormElement>(null);
   const [amountInput, setAmountInput] = useState("");
   const [transactionType, setTransactionType] = useState<
     "expense" | "income" | null
@@ -41,23 +36,6 @@ export function NewTransactionForm() {
   );
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [categoryError, setCategoryError] = useState(false);
-
-  useEffect(() => {
-    if (state.status === "success") {
-      invalidate();
-      formRef.current?.reset();
-      setAmountInput("");
-      setTransactionType(null);
-      setSelectedCategory(null);
-      setIsCategoryDialogOpen(false);
-      setCategoryError(false);
-      if (state.transactionType) {
-        router.push(
-          `/transactions?type=${state.transactionType}&created=${state.transactionType}`,
-        );
-      }
-    }
-  }, [invalidate, router, state.status, state.transactionType]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!selectedCategory) {
@@ -69,7 +47,7 @@ export function NewTransactionForm() {
 
   return (
     <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 sm:p-6">
-      <form ref={formRef} action={formAction} onSubmit={handleSubmit}>
+      <form action={formAction} onSubmit={handleSubmit}>
         <fieldset>
           <legend className="mb-3 text-sm font-semibold text-neutral-200">
             Tipo de movimentação
