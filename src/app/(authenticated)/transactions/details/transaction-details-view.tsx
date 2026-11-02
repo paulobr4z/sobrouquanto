@@ -361,12 +361,8 @@ export function TransactionDetailsView({
         onCancel={() => setIsDeleteDialogOpen(false)}
         onClose={() => setIsDeleteDialogOpen(false)}
         aria-labelledby="delete-transaction-title"
-        className="fixed inset-x-0 bottom-0 m-0 w-full max-w-none rounded-t-3xl border border-neutral-800 bg-neutral-900 p-6 text-neutral-50 backdrop:bg-black/80 sm:inset-0 sm:m-auto sm:w-[calc(100%-2rem)] sm:max-w-sm sm:rounded-3xl"
+        className="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-neutral-800 bg-neutral-900 p-6 text-neutral-50 backdrop:bg-black/80"
       >
-        <div
-          aria-hidden="true"
-          className="mx-auto mb-5 h-1 w-10 rounded-full bg-neutral-700 sm:hidden"
-        />
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/15 text-rose-400">
           <Trash2 aria-hidden="true" className="h-5 w-5" />
         </div>
