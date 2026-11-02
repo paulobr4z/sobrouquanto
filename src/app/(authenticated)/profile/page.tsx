@@ -1,12 +1,35 @@
 import { LogOut } from "lucide-react";
-import { signOut } from "../../_actions/auth";
+import { redirect } from "next/navigation";
+import { signOut } from "@/app/_actions/auth";
+import { getAuthenticatedUser } from "@/lib/supabase/auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ProfileNameForm } from "./profile-name-form";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
         Perfil
       </h1>
+
+      <ProfileNameForm displayName={data?.display_name ?? ""} />
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5">
         <h2 className="text-base font-semibold text-neutral-100">Sessão</h2>
