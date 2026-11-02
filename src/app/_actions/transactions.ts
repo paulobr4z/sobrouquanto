@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { categories, getCategoryIcon } from "@/data/categories";
 import { parseBrazilianAmount } from "@/lib/currency";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
@@ -446,5 +447,5 @@ export async function deleteTransaction(
   revalidatePath("/transactions");
   revalidatePath("/transactions/details");
 
-  return { status: "success", message: "Movimentação excluída com sucesso." };
+  redirect("/transactions");
 }

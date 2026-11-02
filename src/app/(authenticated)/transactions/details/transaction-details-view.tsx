@@ -90,14 +90,6 @@ export function TransactionDetailsView({
   }, [transaction.amount]);
 
   useEffect(() => {
-    if (deleteState.status === "success") {
-      invalidate();
-      router.replace("/transactions");
-      router.refresh();
-    }
-  }, [deleteState.status, invalidate, router]);
-
-  useEffect(() => {
     const dialog = deleteDialogRef.current;
     if (!dialog) return;
 
@@ -385,7 +377,7 @@ export function TransactionDetailsView({
             {deleteState.message}
           </p>
         )}
-        <form action={deleteAction}>
+        <form action={deleteAction} onSubmit={() => invalidate()}>
           <input type="hidden" name="transactionId" value={transaction.id} />
           <div className="mt-6 grid grid-cols-2 gap-2">
             <button
