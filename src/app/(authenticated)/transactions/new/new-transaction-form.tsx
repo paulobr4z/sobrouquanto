@@ -10,9 +10,9 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
+import { CategoryPicker } from "@/components/CategoryPicker";
 import type { Category } from "@/data/categories";
 import { formatBrazilianAmountInput } from "@/lib/currency";
-import { CategoryPicker } from "./category-picker";
 
 const initialState: TransactionFormState = {
   status: "idle",

@@ -20,8 +20,9 @@ import {
   updateTransaction,
 } from "@/app/_actions/transactions";
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
+import { CategoryPicker } from "@/components/CategoryPicker";
 import { DynamicIcon } from "@/components/DynamicIcon";
-import { categories, getCategoryIcon } from "@/data/categories";
+import { type Category, getCategoryIcon } from "@/data/categories";
 import {
   formatAmountForInput,
   formatBrazilianAmountInput,
@@ -67,6 +68,11 @@ export function TransactionDetailsView({
   const [amountInput, setAmountInput] = useState(() =>
     formatAmountForInput(Math.abs(transaction.amount)),
   );
+  const [selectedCategory, setSelectedCategory] = useState<Category>(() => ({
+    name: transaction.category,
+    icon: getCategoryIcon(transaction.category),
+  }));
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const deleteDialogRef = useRef<HTMLDialogElement>(null);
   const [updateState, updateAction, isUpdatePending] = useActionState(
     updateTransaction,
@@ -90,6 +96,13 @@ export function TransactionDetailsView({
   }, [transaction.amount]);
 
   useEffect(() => {
+    setSelectedCategory({
+      name: transaction.category,
+      icon: getCategoryIcon(transaction.category),
+    });
+  }, [transaction.category]);
+
+  useEffect(() => {
     const dialog = deleteDialogRef.current;
     if (!dialog) return;
 
@@ -99,10 +112,6 @@ export function TransactionDetailsView({
       dialog.close();
     }
   }, [isDeleteDialogOpen]);
-
-  const existingCategoryIsCustom = !categories.some(
-    ({ name }) => name === transaction.category,
-  );
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-md flex-col">
@@ -202,26 +211,24 @@ export function TransactionDetailsView({
               </span>
             </label>
 
-            <label className="block text-sm font-medium text-neutral-300">
-              Categoria
-              <select
-                name="category"
-                defaultValue={transaction.category}
-                required
-                className={`${fieldClassName} mt-2`}
+            <div>
+              <label
+                htmlFor="transaction-category"
+                className="mb-2 block text-sm font-medium text-neutral-300"
               >
-                {existingCategoryIsCustom && (
-                  <option value={transaction.category}>
-                    {transaction.category}
-                  </option>
-                )}
-                {categories.map((category) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+                Categoria
+              </label>
+              <CategoryPicker
+                selectedCategory={selectedCategory}
+                isOpen={isCategoryDialogOpen}
+                hasError={false}
+                onOpenChange={setIsCategoryDialogOpen}
+                onSelect={(category) => {
+                  setSelectedCategory(category);
+                  setIsCategoryDialogOpen(false);
+                }}
+              />
+            </div>
 
             <label className="block text-sm font-medium text-neutral-300">
               Data
