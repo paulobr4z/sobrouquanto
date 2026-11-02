@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Loader2, LockKeyhole, Mail, Wallet } from "lucide-react";
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signIn } from "../../_actions/auth";
 import { AuthInput } from "../../components/auth-input";
@@ -13,13 +14,6 @@ export function LoginForm() {
   return (
     <div className="flex w-full max-w-xl flex-1 flex-col">
       <header>
-        <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl border border-neutral-800 bg-[#171717]">
-          <Wallet
-            aria-hidden="true"
-            className="h-5 w-5 text-emerald-400"
-            strokeWidth={2.2}
-          />
-        </div>
         <h1 className="text-[28px] font-extrabold leading-tight tracking-[-0.04em] text-neutral-50">
           Bem-vindo de volta
         </h1>
@@ -81,7 +75,7 @@ export function LoginForm() {
           </button>
         </div>
 
-        <div className="mt-auto pt-10">
+        <div className="pt-4">
           <button
             type="submit"
             disabled={isPending}
@@ -94,15 +88,12 @@ export function LoginForm() {
           </button>
           <p className="mt-4 text-center text-sm text-neutral-400">
             Ainda não tem conta?{" "}
-            <button
-              type="button"
+            <Link
+              href="/signup"
               className="font-bold text-emerald-400 transition-colors hover:text-emerald-300 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
-              onClick={() =>
-                setNotice("A criação de conta será habilitada com o Supabase.")
-              }
             >
               Criar conta
-            </button>
+            </Link>
           </p>
           {state.error && (
             <p className="mt-4 text-center text-xs text-red-400" role="alert">
