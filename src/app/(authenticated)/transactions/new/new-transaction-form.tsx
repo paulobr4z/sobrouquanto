@@ -7,7 +7,7 @@ import {
   Repeat,
 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
@@ -29,7 +29,11 @@ export function NewTransactionForm() {
     initialState,
   );
   const { invalidate } = useDashboardDataCache();
+  const formRef = useRef<HTMLFormElement>(null);
   const [amountInput, setAmountInput] = useState("");
+  const [transactionType, setTransactionType] = useState<
+    "expense" | "income" | null
+  >("expense");
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
@@ -39,8 +43,14 @@ export function NewTransactionForm() {
   useEffect(() => {
     if (state.status === "success") {
       invalidate();
+      formRef.current?.reset();
+      setAmountInput("");
+      setTransactionType(null);
+      setSelectedCategory(null);
+      setIsCategoryDialogOpen(false);
+      setCategoryError(false);
     }
-  }, [invalidate, state.status]);
+  }, [invalidate, state]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!selectedCategory) {
@@ -52,7 +62,7 @@ export function NewTransactionForm() {
 
   return (
     <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4 sm:p-6">
-      <form action={formAction} onSubmit={handleSubmit}>
+      <form ref={formRef} action={formAction} onSubmit={handleSubmit}>
         <fieldset>
           <legend className="mb-3 text-sm font-semibold text-neutral-200">
             Tipo de movimentação
@@ -63,7 +73,9 @@ export function NewTransactionForm() {
                 type="radio"
                 name="transactionType"
                 value="expense"
-                defaultChecked
+                checked={transactionType === "expense"}
+                onChange={() => setTransactionType("expense")}
+                required
                 className="peer sr-only"
               />
               <span className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-3 text-sm font-semibold text-neutral-400 transition peer-checked:border-emerald-500/60 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-300 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
@@ -76,6 +88,9 @@ export function NewTransactionForm() {
                 type="radio"
                 name="transactionType"
                 value="income"
+                checked={transactionType === "income"}
+                onChange={() => setTransactionType("income")}
+                required
                 className="peer sr-only"
               />
               <span className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-3 text-sm font-semibold text-neutral-400 transition peer-checked:border-emerald-500/60 peer-checked:bg-emerald-500/10 peer-checked:text-emerald-300 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500">
