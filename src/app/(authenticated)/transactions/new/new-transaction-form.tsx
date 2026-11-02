@@ -7,6 +7,7 @@ import {
   Repeat,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { TransactionFormState } from "@/app/_actions/transactions";
 import { createTransaction } from "@/app/_actions/transactions";
@@ -24,6 +25,7 @@ const fieldClassName =
   "h-12 w-full rounded-xl border border-neutral-800 bg-neutral-900 px-4 text-sm text-neutral-100 outline-none transition placeholder:text-neutral-600 focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/10";
 
 export function NewTransactionForm() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(
     createTransaction,
     initialState,
@@ -49,8 +51,13 @@ export function NewTransactionForm() {
       setSelectedCategory(null);
       setIsCategoryDialogOpen(false);
       setCategoryError(false);
+      if (state.transactionType) {
+        router.push(
+          `/transactions?type=${state.transactionType}&created=${state.transactionType}`,
+        );
+      }
     }
-  }, [invalidate, state]);
+  }, [invalidate, router, state.status, state.transactionType]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (!selectedCategory) {

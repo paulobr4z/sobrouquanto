@@ -13,6 +13,7 @@ import {
 export type TransactionFormState = {
   status: "idle" | "error" | "success";
   message: string;
+  transactionType?: "expense" | "income";
 };
 
 export type TransactionDetails = {
@@ -302,6 +303,7 @@ export async function createTransaction(
   return {
     status: "success",
     message: "Movimentação salva com sucesso.",
+    transactionType: values.transactionType,
   };
 }
 
