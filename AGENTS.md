@@ -64,6 +64,7 @@ Comece com componentes específicos da funcionalidade. Promova-os para `componen
 - Verifique que navegação, formulários, cartões, tabelas e gráficos continuam utilizáveis em telas pequenas; adapte a apresentação de dados densos para dispositivos móveis em vez de apenas reduzir tudo.
 - Em telas maiores, aproveite o espaço adicional com hierarquia e limites de leitura adequados; não estique conteúdo sem necessidade.
 - Use elementos HTML semânticos, rótulos associados aos campos, estados de foco visíveis e controles acessíveis por teclado. Ícones decorativos não devem substituir nomes acessíveis.
+- Todo campo de entrada de valores monetários deve aplicar uma máscara enquanto o usuário digita, formatando o valor em reais no padrão brasileiro. Reutilize `formatBrazilianAmountInput` de `src/lib/currency.ts` em um input controlado e mantenha a validação do valor no servidor.
 
 ## 5. Estilos
 

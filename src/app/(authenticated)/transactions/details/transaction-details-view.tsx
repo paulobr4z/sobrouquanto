@@ -22,7 +22,10 @@ import {
 import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import { categories, getCategoryIcon } from "@/data/categories";
-import { formatAmountForInput } from "@/lib/currency";
+import {
+  formatAmountForInput,
+  formatBrazilianAmountInput,
+} from "@/lib/currency";
 
 const initialState: TransactionFormState = {
   status: "idle",
@@ -61,6 +64,9 @@ export function TransactionDetailsView({
   const { invalidate } = useDashboardDataCache();
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [amountInput, setAmountInput] = useState(() =>
+    formatAmountForInput(Math.abs(transaction.amount)),
+  );
   const deleteDialogRef = useRef<HTMLDialogElement>(null);
   const [updateState, updateAction, isUpdatePending] = useActionState(
     updateTransaction,
@@ -78,6 +84,10 @@ export function TransactionDetailsView({
       router.refresh();
     }
   }, [invalidate, router, updateState.status]);
+
+  useEffect(() => {
+    setAmountInput(formatAmountForInput(Math.abs(transaction.amount)));
+  }, [transaction.amount]);
 
   useEffect(() => {
     if (deleteState.status === "success") {
@@ -188,9 +198,13 @@ export function TransactionDetailsView({
                   type="text"
                   inputMode="decimal"
                   required
-                  defaultValue={formatAmountForInput(
-                    Math.abs(transaction.amount),
-                  )}
+                  value={amountInput}
+                  onChange={(event) =>
+                    setAmountInput(
+                      formatBrazilianAmountInput(event.target.value),
+                    )
+                  }
+                  placeholder="0,00"
                   className={`${fieldClassName} pl-12`}
                 />
               </span>
