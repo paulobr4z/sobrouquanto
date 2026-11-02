@@ -18,8 +18,8 @@ pnpm dev
 
 ## Rotas e autenticação
 
-- `src/app/(public)/`: páginas públicas, como `/login`; usuários autenticados
-  são enviados para `/`.
+- `src/app/(public)/`: páginas públicas, como `/login` e `/signup`; usuários
+  autenticados são enviados para `/`.
 - `src/app/(authenticated)/`: páginas que exigem sessão; usuários sem sessão
   são enviados para `/login`.
 - `src/proxy.ts`: atualiza os cookies da sessão Supabase entre requisições.
