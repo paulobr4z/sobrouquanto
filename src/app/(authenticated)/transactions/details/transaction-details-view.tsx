@@ -115,7 +115,7 @@ export function TransactionDetailsView({
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-8rem)] w-full max-w-md flex-col">
-      <header className="flex h-12 items-center justify-between">
+      <header className="relative flex h-12 items-center justify-between">
         <Link
           href="/transactions"
           aria-label="Voltar para movimentações"
@@ -123,20 +123,24 @@ export function TransactionDetailsView({
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" />
         </Link>
-        <h1 className="text-base font-semibold text-neutral-50">Detalhes</h1>
-        <button
-          type="button"
-          onClick={() => setIsDeleteDialogOpen(true)}
-          disabled={transaction.isRecurring || isEditing}
-          aria-label={
-            transaction.isRecurring
-              ? "Exclusão indisponível para movimentações recorrentes"
-              : "Excluir movimentação"
-          }
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-rose-400 transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-neutral-900"
-        >
-          <Trash2 aria-hidden="true" className="h-4 w-4" />
-        </button>
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-base font-semibold text-neutral-50">
+          Detalhes
+        </h1>
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            disabled={transaction.isRecurring}
+            aria-label={
+              transaction.isRecurring
+                ? "Exclusão indisponível para movimentações recorrentes"
+                : "Excluir movimentação"
+            }
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-800 bg-neutral-900 text-rose-400 transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-neutral-900"
+          >
+            <Trash2 aria-hidden="true" className="h-4 w-4" />
+          </button>
+        )}
       </header>
 
       <main className="flex flex-1 flex-col pt-8">
