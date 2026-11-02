@@ -13,9 +13,9 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import {
   deleteSpendingBudget,
-  loadSpendingBudget,
   saveSpendingBudget,
 } from "@/app/_actions/budget";
+import { useDashboardDataCache } from "@/app/(authenticated)/dashboard-data-cache";
 import {
   formatAmountForInput,
   formatBrazilianAmountInput,
@@ -154,8 +154,13 @@ function PaceCard({ metrics }: { metrics: SpendingBudgetMetrics }) {
 }
 
 export default function BudgetPage() {
-  const [budget, setBudget] = useState<SpendingBudget | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { getSpendingBudget, loadSpendingBudget, setSpendingBudget } =
+    useDashboardDataCache();
+  const cachedBudget = getSpendingBudget();
+  const [budget, setBudget] = useState<SpendingBudget | null>(
+    cachedBudget ?? null,
+  );
+  const [isLoading, setIsLoading] = useState(cachedBudget === undefined);
   const [loadError, setLoadError] = useState("");
   const [sheetMode, setSheetMode] = useState<SheetMode>(null);
   const [amountInput, setAmountInput] = useState("");
@@ -169,6 +174,14 @@ export default function BudgetPage() {
   const [deleteError, setDeleteError] = useState("");
 
   const loadBudget = useCallback(async () => {
+    const cachedValue = getSpendingBudget();
+    if (cachedValue !== undefined) {
+      setBudget(cachedValue);
+      setIsLoading(false);
+      setLoadError("");
+      return;
+    }
+
     setIsLoading(true);
     setLoadError("");
     try {
@@ -179,7 +192,7 @@ export default function BudgetPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getSpendingBudget, loadSpendingBudget]);
 
   useEffect(() => {
     void loadBudget();
@@ -206,6 +219,7 @@ export default function BudgetPage() {
     setFormError("");
     try {
       await saveSpendingBudget(updatedBudget);
+      setSpendingBudget(updatedBudget);
       setBudget(updatedBudget);
       setSheetMode(null);
     } catch (error) {
@@ -303,6 +317,7 @@ export default function BudgetPage() {
     setDeleteError("");
     try {
       await deleteSpendingBudget();
+      setSpendingBudget(null);
       setBudget(null);
       setIsDeleteConfirmationVisible(false);
     } catch (error) {

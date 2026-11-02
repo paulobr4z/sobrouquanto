@@ -1,11 +1,20 @@
 import { LogOut } from "lucide-react";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { signOut } from "@/app/_actions/auth";
 import { getAuthenticatedUser } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ProfileNameForm } from "./profile-name-form";
 
-export default async function ProfilePage() {
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<ProfileLoading />}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+async function ProfileContent() {
   const user = await getAuthenticatedUser();
 
   if (!user) {
@@ -46,6 +55,19 @@ export default async function ProfilePage() {
           </button>
         </form>
       </section>
+    </div>
+  );
+}
+
+function ProfileLoading() {
+  return (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <h1 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
+        Perfil
+      </h1>
+      <output aria-live="polite" className="text-sm text-neutral-500">
+        Carregando perfil...
+      </output>
     </div>
   );
 }

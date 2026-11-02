@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
 } from "react";
+import { loadSpendingBudget as fetchSpendingBudget } from "@/app/_actions/budget";
 import type { MonthlyTransaction } from "@/app/_actions/dashboard";
 import {
   getMonthlyTransactions as fetchMonthlyTransactions,
@@ -14,6 +15,7 @@ import {
   getMonthlyTotals,
 } from "@/app/_actions/dashboard";
 import type { Period } from "@/components/MonthSelector";
+import type { SpendingBudget } from "./budget/budget-utils";
 
 type MonthlyTotals = Awaited<ReturnType<typeof getMonthlyTotals>>;
 type BalanceSummary = Awaited<ReturnType<typeof getBalanceSummary>>;
@@ -31,6 +33,9 @@ type DashboardCache = {
   loadBalanceSummary: (period: Period) => Promise<BalanceSummary>;
   getMonthlyTransactions: (period: Period) => MonthlyTransaction[] | null;
   loadMonthlyTransactions: (period: Period) => Promise<MonthlyTransaction[]>;
+  getSpendingBudget: () => SpendingBudget | null | undefined;
+  loadSpendingBudget: () => Promise<SpendingBudget | null>;
+  setSpendingBudget: (budget: SpendingBudget | null) => void;
   invalidate: () => void;
 };
 
@@ -96,6 +101,11 @@ export function DashboardDataCacheProvider({
     requests: new Map(),
     generation: 0,
   });
+  const spendingBudgetCache = useRef<Cache<SpendingBudget | null>>({
+    values: new Map(),
+    requests: new Map(),
+    generation: 0,
+  });
 
   const cache = useMemo<DashboardCache>(
     () => ({
@@ -117,6 +127,15 @@ export function DashboardDataCacheProvider({
         loadCached(monthlyTransactionsCache.current, periodKey(period), () =>
           fetchMonthlyTransactions(period.month, period.year),
         ),
+      getSpendingBudget: () =>
+        spendingBudgetCache.current.values.get("current"),
+      loadSpendingBudget: () =>
+        loadCached(spendingBudgetCache.current, "current", fetchSpendingBudget),
+      setSpendingBudget: (budget) => {
+        spendingBudgetCache.current.generation += 1;
+        spendingBudgetCache.current.requests.clear();
+        spendingBudgetCache.current.values.set("current", budget);
+      },
       invalidate: () => {
         monthlyTotalsCache.current.generation += 1;
         monthlyTotalsCache.current.values.clear();
@@ -127,6 +146,9 @@ export function DashboardDataCacheProvider({
         monthlyTransactionsCache.current.generation += 1;
         monthlyTransactionsCache.current.values.clear();
         monthlyTransactionsCache.current.requests.clear();
+        spendingBudgetCache.current.generation += 1;
+        spendingBudgetCache.current.values.clear();
+        spendingBudgetCache.current.requests.clear();
       },
     }),
     [],
