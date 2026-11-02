@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 type SummaryMetricCardProps = {
   title: string;
@@ -13,8 +14,8 @@ const variantStyles = {
     icon: "text-emerald-400",
   },
   expense: {
-    iconContainer: "bg-neutral-800",
-    icon: "text-neutral-300",
+    iconContainer: "bg-rose-500/15",
+    icon: "text-rose-400",
   },
 } satisfies Record<
   SummaryMetricCardProps["variant"],
@@ -33,7 +34,10 @@ export function SummaryMetricCard({
   const styles = variantStyles[variant];
 
   return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6">
+    <Link
+      href={`/transactions?type=${variant}`}
+      className="block rounded-2xl border border-neutral-800 bg-neutral-900 p-4 transition hover:border-neutral-700 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:p-6 cursor-pointer"
+    >
       <div
         className={`mb-3 flex h-9 w-9 items-center justify-center rounded-full ${styles.iconContainer}`}
       >
@@ -43,6 +47,6 @@ export function SummaryMetricCard({
       <p className="mt-0.5 text-xl md:text-3xl font-bold text-neutral-50">
         {value}
       </p>
-    </div>
+    </Link>
   );
 }
