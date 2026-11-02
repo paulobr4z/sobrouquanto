@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Loader2, LockKeyhole, Mail, Wallet } from "lucide-react";
+import { Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signUp } from "../../_actions/auth";
@@ -24,8 +24,10 @@ export function SignupForm() {
       {state.success ? (
         <div className="mt-9">
           <output className="block text-sm leading-6 text-neutral-300">
-            Conta criada. Se a confirmação de e-mail estiver habilitada, confira
-            sua caixa de entrada para ativar o acesso.
+            Enviamos um e-mail de confirmação para você. Abra a mensagem e
+            confirme seu endereço para ativar sua conta. Você só poderá entrar
+            na plataforma depois de confirmar o e-mail. Se não encontrar a
+            mensagem, confira também a caixa de spam.
           </output>
           <Link
             href="/login"
