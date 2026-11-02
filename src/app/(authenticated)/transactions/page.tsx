@@ -139,7 +139,7 @@ export default function TransactionsPage() {
             {visibleTransactions.map((transaction) => (
               <li
                 key={transaction.id}
-                className="flex min-w-0 items-center gap-3 py-4 sm:gap-4"
+                className="flex min-w-0 cursor-pointer items-center gap-3 py-4 sm:gap-4"
               >
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-800">
                   <DynamicIcon
