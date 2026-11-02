@@ -1,6 +1,7 @@
 "use client";
 
 import { Repeat } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MonthlyTransaction } from "@/app/_actions/dashboard";
 import { getMonthlyTransactions } from "@/app/_actions/dashboard";
@@ -139,38 +140,46 @@ export default function TransactionsPage() {
             {visibleTransactions.map((transaction) => (
               <li
                 key={transaction.id}
-                className="flex min-w-0 cursor-pointer items-center gap-3 py-4 sm:gap-4"
+                className="min-w-0"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-800">
-                  <DynamicIcon
-                    name={getCategoryIcon(transaction.category)}
-                    className="h-5 w-5 text-neutral-300"
-                  />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-medium text-neutral-100 sm:text-lg">
-                    {transaction.name}
-                  </p>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-500">
-                    <span>
-                      {transaction.category} ·{" "}
-                      {dateFormatter.format(
-                        new Date(`${transaction.transactionDate}T00:00:00Z`),
-                      )}
-                    </span>
-                    {transaction.isRecurring && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
-                        <Repeat aria-hidden="true" className="h-3 w-3" />
-                        Recorrente
-                      </span>
-                    )}
+                <Link
+                  href={{
+                    pathname: "/transactions/details",
+                    query: { id: transaction.id },
+                  }}
+                  className="flex min-w-0 cursor-pointer items-center gap-3 py-4 sm:gap-4"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-800">
+                    <DynamicIcon
+                      name={getCategoryIcon(transaction.category)}
+                      className="h-5 w-5 text-neutral-300"
+                    />
                   </div>
-                </div>
 
-                <p className="shrink-0 text-right text-base font-bold text-neutral-100 sm:text-lg">
-                  {currencyFormatter.format(transaction.amount)}
-                </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-medium text-neutral-100 sm:text-lg">
+                      {transaction.name}
+                    </p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-500">
+                      <span>
+                        {transaction.category} ·{" "}
+                        {dateFormatter.format(
+                          new Date(`${transaction.transactionDate}T00:00:00Z`),
+                        )}
+                      </span>
+                      {transaction.isRecurring && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
+                          <Repeat aria-hidden="true" className="h-3 w-3" />
+                          Recorrente
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="shrink-0 text-right text-base font-bold text-neutral-100 sm:text-lg">
+                    {currencyFormatter.format(transaction.amount)}
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>
