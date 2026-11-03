@@ -117,7 +117,9 @@ export function BalanceSummary({
       className="rounded-3xl border border-neutral-800 bg-neutral-900 p-4 sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <p className="text-lg font-normal text-neutral-50 sm:text-xl">Saldo</p>
+        <p className="text-lg font-normal text-neutral-50 sm:text-xl">
+          Resultado do mês
+        </p>
         <MonthSelector period={period} onChangePeriod={onChangePeriod} />
       </div>
 

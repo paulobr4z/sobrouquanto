@@ -30,6 +30,7 @@ export type MonthlyTransaction = {
 type MonthlyCategoryExpense = {
   category: string;
   amount: number;
+  previousAmount: number;
 };
 
 function validatePeriod(month: number, year: number) {
@@ -253,18 +254,21 @@ export async function getMonthlyTotals(
   }
 
   const currentStart = new Date(Date.UTC(year, month, 1));
+  const previousStart = new Date(Date.UTC(year, month - 1, 1));
   const nextStart = new Date(Date.UTC(year, month + 1, 1));
+  const previousMonthPrefix = previousStart.toISOString().slice(0, 7);
   const monthPrefix = currentStart.toISOString().slice(0, 7);
   const supabase = await createSupabaseServerClient();
   const totals = { income: 0, expenses: 0 };
   const categoryTotals = new Map<string, number>();
+  const previousCategoryTotals = new Map<string, number>();
 
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const { data, error } = await supabase
       .from("transactions")
       .select("id, transaction_date, amount, income, category")
       .eq("user_id", user.id)
-      .gte("transaction_date", currentStart.toISOString().slice(0, 10))
+      .gte("transaction_date", previousStart.toISOString().slice(0, 10))
       .lt("transaction_date", nextStart.toISOString().slice(0, 10))
       .order("id", { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1);
@@ -277,24 +281,31 @@ export async function getMonthlyTotals(
 
     for (const row of rows) {
       const amount = getSignedAmount(row);
+      const rowMonth = row.transaction_date.slice(0, 7);
 
-      if (row.transaction_date.slice(0, 7) !== monthPrefix) {
+      if (rowMonth !== monthPrefix && rowMonth !== previousMonthPrefix) {
         throw new Error(
           "O Supabase retornou uma movimentação fora do período.",
         );
       }
 
       if (row.income) {
-        totals.income += Math.abs(amount);
+        if (rowMonth === monthPrefix) {
+          totals.income += Math.abs(amount);
+        }
       } else {
-        totals.expenses -= Math.abs(amount);
+        const categoryTotalsForMonth =
+          rowMonth === monthPrefix ? categoryTotals : previousCategoryTotals;
+        if (rowMonth === monthPrefix) {
+          totals.expenses -= Math.abs(amount);
+        }
         const category =
           typeof row.category === "string" && row.category.trim()
             ? row.category.trim()
             : "Sem categoria";
-        categoryTotals.set(
+        categoryTotalsForMonth.set(
           category,
-          (categoryTotals.get(category) ?? 0) + Math.abs(amount),
+          (categoryTotalsForMonth.get(category) ?? 0) + Math.abs(amount),
         );
       }
     }
@@ -310,7 +321,8 @@ export async function getMonthlyTotals(
   );
 
   for (const row of recurringTransactions) {
-    if (row.transaction_date.slice(0, 7) === monthPrefix) {
+    const sourceMonth = row.transaction_date.slice(0, 7);
+    if (sourceMonth === monthPrefix) {
       continue;
     }
 
@@ -321,12 +333,18 @@ export async function getMonthlyTotals(
     }
 
     const expense = Math.abs(amount);
-    totals.expenses -= expense;
     const category =
       typeof row.category === "string" && row.category.trim()
         ? row.category.trim()
         : "Sem categoria";
+    totals.expenses -= expense;
     categoryTotals.set(category, (categoryTotals.get(category) ?? 0) + expense);
+    if (sourceMonth !== previousMonthPrefix) {
+      previousCategoryTotals.set(
+        category,
+        (previousCategoryTotals.get(category) ?? 0) + expense,
+      );
+    }
   }
 
   return {
@@ -334,6 +352,7 @@ export async function getMonthlyTotals(
     categories: Array.from(categoryTotals, ([category, amount]) => ({
       category,
       amount,
+      previousAmount: previousCategoryTotals.get(category) ?? 0,
     })).sort((first, second) => second.amount - first.amount),
   };
 }
