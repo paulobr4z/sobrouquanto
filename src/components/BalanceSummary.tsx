@@ -14,6 +14,15 @@ type BalanceSummaryData = {
   previousBalance: number;
 };
 
+const monthFormatter = new Intl.DateTimeFormat("pt-BR", {
+  month: "long",
+  timeZone: "UTC",
+});
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
 export function BalanceSummary({
   period,
   onChangePeriod,
@@ -71,36 +80,18 @@ export function BalanceSummary({
     };
   }, [loadSummary]);
 
-  const percentageChange =
-    summary === null
-      ? null
-      : summary.previousBalance === 0
-        ? summary.balance === 0
-          ? 0
-          : null
-        : ((summary.balance - summary.previousBalance) /
-            Math.abs(summary.previousBalance)) *
-          100;
-  const percentageLabel =
-    percentageChange === null
-      ? "Novo saldo"
-      : `${percentageChange > 0 ? "+" : ""}${percentageChange.toLocaleString(
-          "pt-BR",
-          {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          },
-        )}%`;
-  const percentageColor =
-    percentageChange === null
-      ? (summary?.balance ?? 0) < 0
+  const balanceDifference =
+    summary === null ? 0 : summary.balance - summary.previousBalance;
+  const differenceLabel = `${balanceDifference > 0 ? "+" : balanceDifference < 0 ? "-" : ""}${currencyFormatter.format(Math.abs(balanceDifference))}`;
+  const previousMonth = monthFormatter
+    .format(new Date(Date.UTC(period.year, period.month - 1, 1)))
+    .toLocaleLowerCase("pt-BR");
+  const differenceColor =
+    balanceDifference > 0
+      ? "text-emerald-400"
+      : balanceDifference < 0
         ? "text-rose-400"
-        : "text-emerald-400"
-      : percentageChange > 0
-        ? "text-emerald-400"
-        : percentageChange < 0
-          ? "text-rose-400"
-          : "text-neutral-400";
+        : "text-neutral-400";
   const balanceLabel = isLoading
     ? "Carregando..."
     : loadError || summary === null
@@ -128,10 +119,10 @@ export function BalanceSummary({
           {balanceLabel}
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className={`text-sm font-semibold ${percentageColor}`}>
-            {isLoading || loadError ? "—" : percentageLabel}
+          <span className={`text-sm font-semibold ${differenceColor}`}>
+            {isLoading || loadError ? "—" : differenceLabel}
           </span>
-          <span className="text-sm text-neutral-500">vs mês passado</span>
+          <span className="text-sm text-neutral-500">vs. {previousMonth}</span>
         </div>
         {loadError && (
           <div className="mt-2 flex flex-wrap items-center gap-2">

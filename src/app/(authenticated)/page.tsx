@@ -130,7 +130,7 @@ export default function FinrHomeDesktop() {
             </button>
           </div>
         )}
-        <div className="mt-8">
+        <div className="mt-4">
           <CategoryExpenseSummary
             categories={monthlyTotals?.categories ?? null}
             period={period}
