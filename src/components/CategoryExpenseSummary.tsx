@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronRight, Minus, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, Plus } from "lucide-react";
 import { DynamicIcon } from "@/components/DynamicIcon";
 import type { Period } from "@/components/MonthSelector";
 import { getCategoryIcon } from "@/data/categories";
@@ -122,7 +122,7 @@ export function CategoryExpenseSummary({
             return (
               <li
                 key={category}
-                className="grid grid-cols-[2.5rem_minmax(0,1fr)_1rem] items-center gap-x-3 gap-y-1.5 py-3 first:pt-1 last:pb-1"
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1.5 py-3 first:pt-1 last:pb-1"
               >
                 <div className="row-span-3 flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800">
                   <DynamicIcon
@@ -165,10 +165,6 @@ export function CategoryExpenseSummary({
                     {changeLabel}
                   </span>
                 </div>
-                <ChevronRight
-                  aria-hidden="true"
-                  className="col-start-3 row-span-3 h-4 w-4 text-neutral-600"
-                />
               </li>
             );
           })}
