@@ -27,3 +27,18 @@ pnpm dev
 As pastas entre parênteses organizam as páginas sem alterar as URLs. A proteção
 de páginas é validada no servidor; o Proxy mantém os tokens atualizados, mas não
 substitui essa validação.
+
+## Movimentações recorrentes
+
+Recorrências são armazenadas separadamente dos lançamentos realizados. As
+ocorrências mensais são exibidas automaticamente; ao editar e salvar uma
+ocorrência, o valor informado é registrado apenas para aquele mês.
+
+Antes de publicar esta versão, aplique a migração
+`supabase/migrations/20261103160000_create_transaction_recurrences.sql` no
+projeto Supabase (por exemplo, pelo SQL Editor). Ela cria as tabelas e políticas
+necessárias e migra as regras recorrentes existentes.
+
+Se a primeira versão dessa migração já tiver sido executada, aplique também
+`supabase/migrations/20261104100000_repair_transaction_recurrence_ids.sql` para
+suportar os IDs textuais das recorrências legadas e recuperar suas regras.

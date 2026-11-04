@@ -186,8 +186,8 @@ export function NewTransactionForm() {
               Marcar como recorrente
             </span>
             <span className="mt-1 block text-xs leading-5 text-neutral-500">
-              A recorrência fica registrada como mensal, sem agendar novos
-              lançamentos.
+              Este lançamento se repetirá automaticamente todo mês. Você pode
+              ajustar o valor de cada mês sem alterar os outros.
             </span>
           </span>
         </label>

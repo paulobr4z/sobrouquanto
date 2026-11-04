@@ -13,9 +13,17 @@ type TransactionSummaryRow = {
   income: boolean;
   category?: string | null;
   recurrence_id?: string | null;
-  recurrence_frequency?: string | null;
-  recurrence_day_of_month?: number | null;
-  recurrence_active?: boolean | null;
+};
+
+type TransactionRecurrenceRule = {
+  id: string;
+  name: string;
+  amount: number | string;
+  income: boolean;
+  category: string | null;
+  day_of_month: number;
+  start_date: string;
+  end_date: string | null;
 };
 
 export type MonthlyTransaction = {
@@ -74,21 +82,21 @@ function getMonthlyOccurrenceDate(
 async function getActiveMonthlyRecurrences(
   userId: string,
   beforeDate: string,
-): Promise<TransactionSummaryRow[]> {
+): Promise<TransactionRecurrenceRule[]> {
   const supabase = await createSupabaseServerClient();
-  const recurringTransactions = new Map<string, TransactionSummaryRow>();
+  const recurringRules: TransactionRecurrenceRule[] = [];
 
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const { data, error } = await supabase
-      .from("transactions")
+      .from("transaction_recurrences")
       .select(
-        "id, name, transaction_date, amount, income, category, recurrence_id, recurrence_day_of_month",
+        "id, name, amount, income, category, day_of_month, start_date, end_date",
       )
       .eq("user_id", userId)
-      .eq("recurrence_active", true)
-      .eq("recurrence_frequency", "monthly")
-      .lt("transaction_date", beforeDate)
-      .order("transaction_date", { ascending: true })
+      .eq("active", true)
+      .eq("frequency", "monthly")
+      .lt("start_date", beforeDate)
+      .order("start_date", { ascending: true })
       .order("id", { ascending: true })
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -96,26 +104,24 @@ async function getActiveMonthlyRecurrences(
       throw error;
     }
 
-    const rows = data as TransactionSummaryRow[];
+    const rows = data as TransactionRecurrenceRule[];
 
     for (const row of rows) {
-      const recurrenceDay = row.recurrence_day_of_month;
       if (
-        typeof row.recurrence_id !== "string" ||
-        !row.recurrence_id ||
-        typeof recurrenceDay !== "number" ||
-        !Number.isInteger(recurrenceDay) ||
-        recurrenceDay < 1 ||
-        recurrenceDay > 31
+        typeof row.id !== "string" ||
+        !row.id ||
+        typeof row.day_of_month !== "number" ||
+        !Number.isInteger(row.day_of_month) ||
+        row.day_of_month < 1 ||
+        row.day_of_month > 31 ||
+        typeof row.start_date !== "string"
       ) {
         throw new Error(
           "Os dados de recorrência de uma movimentação recebida são inválidos.",
         );
       }
 
-      if (!recurringTransactions.has(row.recurrence_id)) {
-        recurringTransactions.set(row.recurrence_id, row);
-      }
+      recurringRules.push(row);
     }
 
     if (rows.length < PAGE_SIZE) {
@@ -123,7 +129,114 @@ async function getActiveMonthlyRecurrences(
     }
   }
 
-  return Array.from(recurringTransactions.values());
+  return recurringRules;
+}
+
+async function getRecurrenceIdsForMonth(
+  userId: string,
+  monthStart: string,
+  nextMonthStart: string,
+  source: "transactions" | "transaction_recurrence_skips",
+): Promise<Set<string>> {
+  const supabase = await createSupabaseServerClient();
+  const recurrenceIds = new Set<string>();
+
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const query =
+      source === "transactions"
+        ? supabase
+            .from("transactions")
+            .select("recurrence_id")
+            .eq("user_id", userId)
+            .gte("transaction_date", monthStart)
+            .lt("transaction_date", nextMonthStart)
+            .not("recurrence_id", "is", null)
+        : supabase
+            .from("transaction_recurrence_skips")
+            .select("recurrence_id")
+            .eq("user_id", userId)
+            .eq("occurrence_month", monthStart);
+    const { data, error } = await query
+      .order("recurrence_id", { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    for (const row of data as { recurrence_id: string }[]) {
+      recurrenceIds.add(row.recurrence_id);
+    }
+
+    if (data.length < PAGE_SIZE) break;
+  }
+
+  return recurrenceIds;
+}
+
+async function getMonthlyRecurrenceProjections(
+  userId: string,
+  month: number,
+  year: number,
+): Promise<MonthlyTransaction[]> {
+  const currentStart = new Date(Date.UTC(year, month, 1));
+  const nextStart = new Date(Date.UTC(year, month + 1, 1));
+  const monthPrefix = currentStart.toISOString().slice(0, 7);
+  const monthStart = currentStart.toISOString().slice(0, 10);
+  const nextMonthStart = nextStart.toISOString().slice(0, 10);
+  const [recurrenceRules, existingRecurrenceIds, skippedRecurrenceIds] =
+    await Promise.all([
+      getActiveMonthlyRecurrences(userId, nextMonthStart),
+      getRecurrenceIdsForMonth(
+        userId,
+        monthStart,
+        nextMonthStart,
+        "transactions",
+      ),
+      getRecurrenceIdsForMonth(
+        userId,
+        monthStart,
+        nextMonthStart,
+        "transaction_recurrence_skips",
+      ),
+    ]);
+
+  return recurrenceRules.flatMap((rule) => {
+    const transactionDate = getMonthlyOccurrenceDate(
+      year,
+      month,
+      rule.day_of_month,
+    );
+    if (
+      rule.start_date > transactionDate ||
+      (rule.end_date !== null && rule.end_date < transactionDate) ||
+      existingRecurrenceIds.has(rule.id) ||
+      skippedRecurrenceIds.has(rule.id)
+    ) {
+      return [];
+    }
+
+    const amount = Number(rule.amount);
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0 ||
+      typeof rule.income !== "boolean"
+    ) {
+      throw new Error("Os dados de recorrência recebidos são inválidos.");
+    }
+
+    return [
+      {
+        id: `recurring:${rule.id}:${monthPrefix}`,
+        name: rule.name,
+        transactionDate,
+        amount: Math.abs(amount) * (rule.income ? 1 : -1),
+        category:
+          typeof rule.category === "string" && rule.category.trim()
+            ? rule.category.trim()
+            : "Sem categoria",
+        isRecurring: true,
+      },
+    ];
+  });
 }
 
 export async function getMonthlyTransactions(
@@ -148,7 +261,7 @@ export async function getMonthlyTransactions(
     const { data, error } = await supabase
       .from("transactions")
       .select(
-        "id, name, transaction_date, amount, income, category, recurrence_id, recurrence_frequency, recurrence_day_of_month, recurrence_active",
+        "id, name, transaction_date, amount, income, category, recurrence_id",
       )
       .eq("user_id", user.id)
       .gte("transaction_date", currentStart.toISOString().slice(0, 10))
@@ -190,45 +303,9 @@ export async function getMonthlyTransactions(
     }
   }
 
-  const recurringTransactions = await getActiveMonthlyRecurrences(
-    user.id,
-    nextStart.toISOString().slice(0, 10),
+  transactions.push(
+    ...(await getMonthlyRecurrenceProjections(user.id, month, year)),
   );
-
-  for (const row of recurringTransactions) {
-    const amount = getSignedAmount(row);
-    const recurrenceDay = row.recurrence_day_of_month;
-    if (typeof recurrenceDay !== "number") {
-      throw new Error(
-        "Os dados de recorrência de uma movimentação recebida são inválidos.",
-      );
-    }
-    const transactionDate =
-      row.transaction_date.slice(0, 7) === monthPrefix
-        ? row.transaction_date
-        : getMonthlyOccurrenceDate(year, month, recurrenceDay);
-
-    if (row.transaction_date.slice(0, 7) === monthPrefix) {
-      const sourceIndex = transactions.findIndex(
-        (transaction) => transaction.id === String(row.id),
-      );
-      if (sourceIndex !== -1) {
-        transactions.splice(sourceIndex, 1);
-      }
-    }
-
-    transactions.push({
-      id: `recurring:${row.recurrence_id}:${monthPrefix}`,
-      name: row.name,
-      transactionDate,
-      amount,
-      category:
-        typeof row.category === "string" && row.category.trim()
-          ? row.category.trim()
-          : "Sem categoria",
-      isRecurring: true,
-    });
-  }
 
   transactions.sort((first, second) =>
     second.transactionDate.localeCompare(first.transactionDate),
@@ -315,34 +392,35 @@ export async function getMonthlyTotals(
     }
   }
 
-  const recurringTransactions = await getActiveMonthlyRecurrences(
-    user.id,
-    nextStart.toISOString().slice(0, 10),
-  );
+  const [currentProjections, previousProjections] = await Promise.all([
+    getMonthlyRecurrenceProjections(user.id, month, year),
+    getMonthlyRecurrenceProjections(
+      user.id,
+      previousStart.getUTCMonth(),
+      previousStart.getUTCFullYear(),
+    ),
+  ]);
 
-  for (const row of recurringTransactions) {
-    const sourceMonth = row.transaction_date.slice(0, 7);
-    if (sourceMonth === monthPrefix) {
-      continue;
+  for (const transaction of currentProjections) {
+    if (transaction.amount > 0) {
+      totals.income += transaction.amount;
+    } else {
+      const expense = Math.abs(transaction.amount);
+      totals.expenses -= expense;
+      categoryTotals.set(
+        transaction.category,
+        (categoryTotals.get(transaction.category) ?? 0) + expense,
+      );
     }
+  }
 
-    const amount = getSignedAmount(row);
-    if (row.income) {
-      totals.income += Math.abs(amount);
-      continue;
-    }
-
-    const expense = Math.abs(amount);
-    const category =
-      typeof row.category === "string" && row.category.trim()
-        ? row.category.trim()
-        : "Sem categoria";
-    totals.expenses -= expense;
-    categoryTotals.set(category, (categoryTotals.get(category) ?? 0) + expense);
-    if (sourceMonth !== previousMonthPrefix) {
+  for (const transaction of previousProjections) {
+    if (transaction.amount < 0) {
+      const category = transaction.category;
       previousCategoryTotals.set(
         category,
-        (previousCategoryTotals.get(category) ?? 0) + expense,
+        (previousCategoryTotals.get(category) ?? 0) +
+          Math.abs(transaction.amount),
       );
     }
   }
@@ -360,7 +438,10 @@ export async function getMonthlyTotals(
 export async function getBalanceSummary(
   month: number,
   year: number,
-): Promise<{ balance: number; previousBalance: number }> {
+): Promise<{
+  balance: number;
+  previousBalance: number;
+}> {
   validatePeriod(month, year);
 
   const user = await getAuthenticatedUser();
@@ -412,21 +493,22 @@ export async function getBalanceSummary(
     }
   }
 
-  const recurringTransactions = await getActiveMonthlyRecurrences(
-    user.id,
-    nextStart.toISOString().slice(0, 10),
-  );
+  const [currentProjections, previousProjections] = await Promise.all([
+    getMonthlyRecurrenceProjections(user.id, month, year),
+    getMonthlyRecurrenceProjections(
+      user.id,
+      previousStart.getUTCMonth(),
+      previousStart.getUTCFullYear(),
+    ),
+  ]);
 
-  for (const row of recurringTransactions) {
-    const amount = getSignedAmount(row);
-    const transactionMonth = row.transaction_date.slice(0, 7);
+  for (const transaction of previousProjections) {
+    totals.previous += transaction.amount;
+    totals.current += transaction.amount;
+  }
 
-    if (transactionMonth < previousMonthPrefix) {
-      totals.previous += amount;
-      totals.current += amount;
-    } else if (transactionMonth === previousMonthPrefix) {
-      totals.current += amount;
-    }
+  for (const transaction of currentProjections) {
+    totals.current += transaction.amount;
   }
 
   return {

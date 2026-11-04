@@ -320,7 +320,7 @@ export function TransactionDetailsView({
               />
               <DetailRow
                 icon={<CalendarDays aria-hidden="true" className="h-4 w-4" />}
-                label={transaction.isRecurring ? "Próxima ocorrência" : "Data"}
+                label={transaction.isRecurring ? "Data da ocorrência" : "Data"}
                 value={dateFormatter.format(
                   new Date(`${transaction.transactionDate}T00:00:00Z`),
                 )}
@@ -337,8 +337,8 @@ export function TransactionDetailsView({
             </dl>
             {transaction.isRecurring && (
               <p className="mt-4 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 text-sm leading-5 text-neutral-400">
-                Esta movimentação faz parte de uma recorrência. A edição e a
-                exclusão de recorrentes ainda não estão disponíveis.
+                Este lançamento se repete mensalmente. Alterações feitas aqui
+                afetam somente este mês.
               </p>
             )}
           </>
@@ -347,16 +347,18 @@ export function TransactionDetailsView({
 
       {!isEditing && (
         <footer className="mt-8 pb-2">
-          {!transaction.isRecurring && (
+          <div className="flex flex-col gap-3">
             <button
               type="button"
               onClick={() => setIsEditing(true)}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-neutral-100 px-4 text-sm font-semibold text-neutral-950 transition hover:bg-white"
             >
               <Pencil aria-hidden="true" className="h-4 w-4" />
-              Editar lançamento
+              {transaction.isRecurring
+                ? "Editar ocorrência deste mês"
+                : "Editar lançamento"}
             </button>
-          )}
+          </div>
         </footer>
       )}
 
