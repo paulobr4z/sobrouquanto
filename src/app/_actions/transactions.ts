@@ -256,11 +256,36 @@ export async function getTransactionDetails(
     }
     if (!rule.active && !occurrence) return null;
 
+    let recurringAmount: number | string = rule.amount;
+    if (!occurrence) {
+      const { data: amountChange, error: amountChangeError } = await supabase
+        .from("transaction_recurrence_amount_changes")
+        .select("amount")
+        .eq("user_id", user.id)
+        .eq("recurrence_id", recurrenceId)
+        .lte("effective_month", occurrenceMonth)
+        .order("effective_month", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (amountChangeError) {
+        console.error(
+          "Failed to load recurrence amount change.",
+          amountChangeError,
+        );
+        throw new Error("Não foi possível carregar a movimentação.");
+      }
+
+      if (amountChange) {
+        recurringAmount = amountChange.amount;
+      }
+    }
+
     const row = (occurrence ?? {
       id: transactionId,
       name: rule.name,
       transaction_date: transactionDate,
-      amount: rule.amount,
+      amount: recurringAmount,
       income: rule.income,
       category: rule.category,
       created_at: null,
@@ -470,6 +495,20 @@ export async function updateTransaction(
 
   const supabase = await createSupabaseActionClient();
   if (recurringMatch) {
+    const recurrenceValueScope = getStringField(
+      formData,
+      "recurrenceValueScope",
+    );
+    if (
+      recurrenceValueScope !== "month" &&
+      recurrenceValueScope !== "month-and-future"
+    ) {
+      return {
+        status: "error",
+        message: "Selecione como aplicar o novo valor.",
+      };
+    }
+
     const occurrenceYear = Number(recurringMatch[2]);
     const occurrenceMonth = Number(recurringMatch[3]);
     const monthPrefix = `${recurringMatch[2]}-${recurringMatch[3]}`;
@@ -627,12 +666,44 @@ export async function updateTransaction(
       };
     }
 
+    if (recurrenceValueScope === "month-and-future") {
+      const { error: amountChangeError } = await supabase
+        .from("transaction_recurrence_amount_changes")
+        .upsert(
+          {
+            recurrence_id: recurringMatch[1],
+            user_id: user.id,
+            effective_month: startDate,
+            amount: validValues.amount.toFixed(2),
+          },
+          { onConflict: "recurrence_id,effective_month" },
+        );
+
+      if (amountChangeError) {
+        console.error(
+          "Occurrence was saved but failed to update future recurrence amounts.",
+          amountChangeError,
+        );
+        revalidatePath("/");
+        revalidatePath("/transactions");
+        revalidatePath("/transactions/details");
+        return {
+          status: "error",
+          message:
+            "A ocorrência deste mês foi salva, mas não foi possível aplicar o novo valor aos próximos meses.",
+        };
+      }
+    }
+
     revalidatePath("/");
     revalidatePath("/transactions");
     revalidatePath("/transactions/details");
     return {
       status: "success",
-      message: "Ocorrência salva com sucesso.",
+      message:
+        recurrenceValueScope === "month-and-future"
+          ? "Valor atualizado neste mês e nos próximos."
+          : "Ocorrência salva com sucesso.",
     };
   }
 

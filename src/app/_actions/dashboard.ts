@@ -26,6 +26,11 @@ type TransactionRecurrenceRule = {
   end_date: string | null;
 };
 
+type TransactionRecurrenceAmountChange = {
+  recurrence_id: string;
+  amount: number | string;
+};
+
 export type MonthlyTransaction = {
   id: string;
   name: string;
@@ -172,6 +177,45 @@ async function getRecurrenceIdsForMonth(
   return recurrenceIds;
 }
 
+async function getRecurrenceAmountChangesForMonth(
+  userId: string,
+  monthStart: string,
+  recurrenceIds: string[],
+): Promise<Map<string, number>> {
+  const supabase = await createSupabaseServerClient();
+  const amountChanges = new Map<string, number>();
+  if (recurrenceIds.length === 0) return amountChanges;
+
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("transaction_recurrence_amount_changes")
+      .select("recurrence_id, amount")
+      .eq("user_id", userId)
+      .in("recurrence_id", recurrenceIds)
+      .lte("effective_month", monthStart)
+      .order("recurrence_id", { ascending: true })
+      .order("effective_month", { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) throw error;
+
+    for (const row of data as TransactionRecurrenceAmountChange[]) {
+      const amount = Number(row.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error(
+          "Os valores de alteração da recorrência recebidos são inválidos.",
+        );
+      }
+
+      amountChanges.set(row.recurrence_id, amount);
+    }
+
+    if (data.length < PAGE_SIZE) break;
+  }
+
+  return amountChanges;
+}
+
 async function getMonthlyRecurrenceProjections(
   userId: string,
   month: number,
@@ -182,9 +226,12 @@ async function getMonthlyRecurrenceProjections(
   const monthPrefix = currentStart.toISOString().slice(0, 7);
   const monthStart = currentStart.toISOString().slice(0, 10);
   const nextMonthStart = nextStart.toISOString().slice(0, 10);
-  const [recurrenceRules, existingRecurrenceIds, skippedRecurrenceIds] =
+  const recurrenceRules = await getActiveMonthlyRecurrences(
+    userId,
+    nextMonthStart,
+  );
+  const [existingRecurrenceIds, skippedRecurrenceIds, amountChanges] =
     await Promise.all([
-      getActiveMonthlyRecurrences(userId, nextMonthStart),
       getRecurrenceIdsForMonth(
         userId,
         monthStart,
@@ -196,6 +243,11 @@ async function getMonthlyRecurrenceProjections(
         monthStart,
         nextMonthStart,
         "transaction_recurrence_skips",
+      ),
+      getRecurrenceAmountChangesForMonth(
+        userId,
+        monthStart,
+        recurrenceRules.map((rule) => rule.id),
       ),
     ]);
 
@@ -214,7 +266,7 @@ async function getMonthlyRecurrenceProjections(
       return [];
     }
 
-    const amount = Number(rule.amount);
+    const amount = amountChanges.get(rule.id) ?? Number(rule.amount);
     if (
       !Number.isFinite(amount) ||
       amount <= 0 ||

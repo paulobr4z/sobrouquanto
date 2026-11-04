@@ -32,7 +32,9 @@ substitui essa validação.
 
 Recorrências são armazenadas separadamente dos lançamentos realizados. As
 ocorrências mensais são exibidas automaticamente; ao editar e salvar uma
-ocorrência, o valor informado é registrado apenas para aquele mês.
+ocorrência, é possível aplicar o novo valor somente àquele mês ou àquele mês e
+aos seguintes. As mudanças futuras passam a valer a partir do mês escolhido,
+sem alterar períodos anteriores.
 
 Antes de publicar esta versão, aplique a migração
 `supabase/migrations/20261103160000_create_transaction_recurrences.sql` no
@@ -42,3 +44,7 @@ necessárias e migra as regras recorrentes existentes.
 Se a primeira versão dessa migração já tiver sido executada, aplique também
 `supabase/migrations/20261104100000_repair_transaction_recurrence_ids.sql` para
 suportar os IDs textuais das recorrências legadas e recuperar suas regras.
+
+Aplique também
+`supabase/migrations/20261104111500_add_recurrence_amount_changes.sql` para
+habilitar mudanças permanentes de valor a partir de um mês escolhido.

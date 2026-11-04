@@ -215,6 +215,41 @@ export function TransactionDetailsView({
               </span>
             </label>
 
+            {transaction.isRecurring && (
+              <fieldset className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+                <legend className="px-1 text-sm font-medium text-neutral-200">
+                  Aplicar novo valor
+                </legend>
+                <div className="mt-1 space-y-3">
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                    <input
+                      type="radio"
+                      name="recurrenceValueScope"
+                      value="month"
+                      defaultChecked
+                      className="mt-0.5 h-4 w-4 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    />
+                    <span>Somente neste mês</span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                    <input
+                      type="radio"
+                      name="recurrenceValueScope"
+                      value="month-and-future"
+                      className="mt-0.5 h-4 w-4 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    />
+                    <span>
+                      Neste mês e nos próximos
+                      <span className="mt-1 block text-xs leading-5 text-neutral-500">
+                        Usa este valor a partir deste mês, até você alterá-lo
+                        novamente.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
+            )}
+
             <div>
               <label
                 htmlFor="transaction-category"
@@ -337,8 +372,8 @@ export function TransactionDetailsView({
             </dl>
             {transaction.isRecurring && (
               <p className="mt-4 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 text-sm leading-5 text-neutral-400">
-                Este lançamento se repete mensalmente. Alterações feitas aqui
-                afetam somente este mês.
+                Este lançamento se repete mensalmente. Ao alterar o valor, você
+                pode aplicar a mudança só neste mês ou também aos próximos.
               </p>
             )}
           </>
