@@ -286,6 +286,25 @@ export function TransactionDetailsView({
               </span>
             </label>
 
+            {!transaction.isRecurring && (
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+                <input
+                  type="checkbox"
+                  name="isRecurring"
+                  className="mt-0.5 h-4 w-4 rounded border-neutral-700 bg-neutral-900 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                />
+                <span>
+                  <span className="flex items-center gap-2 text-sm font-medium text-neutral-200">
+                    Tornar recorrente
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-neutral-500">
+                    Mantém este lançamento e cria automaticamente as ocorrências
+                    mensais seguintes.
+                  </span>
+                </span>
+              </label>
+            )}
+
             {updateState.message && (
               <p
                 role={updateState.status === "error" ? "alert" : "status"}

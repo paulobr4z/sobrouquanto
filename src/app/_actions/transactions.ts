@@ -727,6 +727,12 @@ export async function updateTransaction(
       message: "Movimentação não encontrada ou indisponível para edição.",
     };
   }
+  if (existingTransaction.recurrence_id) {
+    return {
+      status: "error",
+      message: "Edite esta movimentação pela ocorrência da recorrência.",
+    };
+  }
 
   const category =
     validValues.category ??
@@ -740,6 +746,37 @@ export async function updateTransaction(
     return { status: "error", message: "Selecione uma categoria válida." };
   }
 
+  const recurrenceId = validValues.isRecurring ? randomUUID() : null;
+  if (recurrenceId) {
+    const { error: recurrenceError } = await supabase
+      .from("transaction_recurrences")
+      .insert({
+        id: recurrenceId,
+        user_id: user.id,
+        name: validValues.name,
+        category: category.name,
+        icon: category.icon,
+        amount: validValues.amount.toFixed(2),
+        income: validValues.transactionType === "income",
+        frequency: "monthly",
+        day_of_month: validValues.dayOfMonth,
+        start_date: validValues.transactionDate,
+        active: true,
+      });
+
+    if (recurrenceError) {
+      console.error(
+        "Failed to create recurrence from transaction.",
+        recurrenceError,
+      );
+      return {
+        status: "error",
+        message:
+          "Não foi possível transformar o lançamento em recorrente. Tente novamente.",
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("transactions")
     .update({
@@ -749,6 +786,10 @@ export async function updateTransaction(
       amount: validValues.amount.toFixed(2),
       icon: category.icon,
       income: validValues.transactionType === "income",
+      recurrence_id: recurrenceId,
+      recurrence_frequency: recurrenceId ? "monthly" : null,
+      recurrence_day_of_month: recurrenceId ? validValues.dayOfMonth : null,
+      recurrence_active: recurrenceId ? true : null,
     })
     .eq("id", transactionId)
     .eq("user_id", user.id)
@@ -757,6 +798,19 @@ export async function updateTransaction(
 
   if (error) {
     console.error("Failed to update transaction.", error);
+    if (recurrenceId) {
+      const { error: cleanupError } = await supabase
+        .from("transaction_recurrences")
+        .delete()
+        .eq("id", recurrenceId)
+        .eq("user_id", user.id);
+      if (cleanupError) {
+        console.error(
+          "Failed to clean up recurrence after transaction update failed.",
+          cleanupError,
+        );
+      }
+    }
     return {
       status: "error",
       message: "Não foi possível salvar as alterações. Tente novamente.",
@@ -773,7 +827,12 @@ export async function updateTransaction(
   revalidatePath("/transactions");
   revalidatePath("/transactions/details");
 
-  return { status: "success", message: "Movimentação atualizada com sucesso." };
+  return {
+    status: "success",
+    message: recurrenceId
+      ? "Lançamento atualizado e recorrência criada."
+      : "Movimentação atualizada com sucesso.",
+  };
 }
 
 export async function skipRecurringOccurrence(

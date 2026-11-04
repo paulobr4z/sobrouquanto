@@ -34,7 +34,9 @@ Recorrências são armazenadas separadamente dos lançamentos realizados. As
 ocorrências mensais são exibidas automaticamente; ao editar e salvar uma
 ocorrência, é possível aplicar o novo valor somente àquele mês ou àquele mês e
 aos seguintes. As mudanças futuras passam a valer a partir do mês escolhido,
-sem alterar períodos anteriores.
+sem alterar períodos anteriores. Um lançamento comum também pode ser
+transformado em recorrente na tela de edição; ele passa a ser o primeiro
+lançamento da série.
 
 Antes de publicar esta versão, aplique a migração
 `supabase/migrations/20261103160000_create_transaction_recurrences.sql` no
