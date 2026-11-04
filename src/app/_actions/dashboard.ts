@@ -556,7 +556,6 @@ export async function getBalanceSummary(
 
   for (const transaction of previousProjections) {
     totals.previous += transaction.amount;
-    totals.current += transaction.amount;
   }
 
   for (const transaction of currentProjections) {
