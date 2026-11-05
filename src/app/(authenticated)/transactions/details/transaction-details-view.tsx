@@ -5,6 +5,8 @@ import {
   ArrowLeft,
   ArrowUpRight,
   CalendarDays,
+  CheckCircle2,
+  CircleDashed,
   Clock3,
   Pencil,
   Tag,
@@ -215,6 +217,23 @@ export function TransactionDetailsView({
               </span>
             </label>
 
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+              <input
+                type="checkbox"
+                name="isPaid"
+                defaultChecked={transaction.isPaid}
+                className="mt-0.5 h-4 w-4 rounded border-neutral-700 bg-neutral-900 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+              />
+              <span>
+                <span className="block text-sm font-medium text-neutral-200">
+                  Marcar como pago
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-neutral-500">
+                  Desmarque para deixar a movimentação como não paga.
+                </span>
+              </span>
+            </label>
+
             {transaction.isRecurring && (
               <fieldset className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
                 <legend className="px-1 text-sm font-medium text-neutral-200">
@@ -373,6 +392,27 @@ export function TransactionDetailsView({
                 value={transaction.category}
               />
               <DetailRow
+                icon={
+                  transaction.isPaid ? (
+                    <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
+                  ) : (
+                    <CircleDashed aria-hidden="true" className="h-4 w-4" />
+                  )
+                }
+                label="Pagamento"
+                value={
+                  <span
+                    className={`rounded-full px-2 py-1 text-xs font-medium ${
+                      transaction.isPaid
+                        ? "bg-emerald-500/10 text-emerald-300"
+                        : "bg-amber-500/10 text-amber-300"
+                    }`}
+                  >
+                    {transaction.isPaid ? "Pago" : "Não pago"}
+                  </span>
+                }
+              />
+              <DetailRow
                 icon={<CalendarDays aria-hidden="true" className="h-4 w-4" />}
                 label={transaction.isRecurring ? "Data da ocorrência" : "Data"}
                 value={dateFormatter.format(
@@ -472,7 +512,7 @@ function DetailRow({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-[3.75rem] items-center justify-between gap-3 px-4">

@@ -50,3 +50,8 @@ suportar os IDs textuais das recorrências legadas e recuperar suas regras.
 Aplique também
 `supabase/migrations/20261104111500_add_recurrence_amount_changes.sql` para
 habilitar mudanças permanentes de valor a partir de um mês escolhido.
+
+Aplique também
+`supabase/migrations/20261105091500_add_transaction_payment_status.sql` para
+armazenar o status de pagamento das movimentações. Os lançamentos existentes
+serão considerados não pagos.

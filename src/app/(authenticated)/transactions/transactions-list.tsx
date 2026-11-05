@@ -238,6 +238,15 @@ export function TransactionsList({
                           Recorrente
                         </span>
                       )}
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          transaction.isPaid
+                            ? "bg-emerald-500/10 text-emerald-300"
+                            : "bg-amber-500/10 text-amber-300"
+                        }`}
+                      >
+                        {transaction.isPaid ? "Pago" : "Não pago"}
+                      </span>
                     </div>
                   </div>
 

@@ -11,6 +11,7 @@ type TransactionSummaryRow = {
   transaction_date: string;
   amount: number | string;
   income: boolean;
+  is_paid: boolean;
   category?: string | null;
   recurrence_id?: string | null;
 };
@@ -38,6 +39,7 @@ export type MonthlyTransaction = {
   amount: number;
   category: string;
   isRecurring: boolean;
+  isPaid: boolean;
 };
 
 type MonthlyCategoryExpense = {
@@ -286,6 +288,7 @@ async function getMonthlyRecurrenceProjections(
             ? rule.category.trim()
             : "Sem categoria",
         isRecurring: true,
+        isPaid: false,
       },
     ];
   });
@@ -313,7 +316,7 @@ export async function getMonthlyTransactions(
     const { data, error } = await supabase
       .from("transactions")
       .select(
-        "id, name, transaction_date, amount, income, category, recurrence_id",
+        "id, name, transaction_date, amount, income, category, recurrence_id, is_paid",
       )
       .eq("user_id", user.id)
       .gte("transaction_date", currentStart.toISOString().slice(0, 10))
@@ -331,6 +334,12 @@ export async function getMonthlyTransactions(
     for (const row of rows) {
       const amount = getSignedAmount(row);
 
+      if (typeof row.is_paid !== "boolean") {
+        throw new Error(
+          "O status de pagamento de uma movimentação é inválido.",
+        );
+      }
+
       if (row.transaction_date.slice(0, 7) !== monthPrefix) {
         throw new Error(
           "O Supabase retornou uma movimentação fora do período.",
@@ -347,6 +356,7 @@ export async function getMonthlyTransactions(
             ? row.category.trim()
             : "Sem categoria",
         isRecurring: Boolean(row.recurrence_id),
+        isPaid: row.is_paid,
       });
     }
 

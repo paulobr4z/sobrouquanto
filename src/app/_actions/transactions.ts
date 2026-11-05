@@ -25,6 +25,7 @@ export type TransactionDetails = {
   transactionDate: string;
   createdAt: string | null;
   isRecurring: boolean;
+  isPaid: boolean;
 };
 
 type TransactionFormValues = {
@@ -33,6 +34,7 @@ type TransactionFormValues = {
   transactionDate: string;
   transactionType: string;
   isRecurring: boolean;
+  isPaid: boolean | null;
   category: (typeof categories)[number] | undefined;
   dayOfMonth: number | null;
   amount: number | null;
@@ -40,11 +42,12 @@ type TransactionFormValues = {
 
 type ValidTransactionFormValues = Omit<
   TransactionFormValues,
-  "dayOfMonth" | "amount" | "transactionType"
+  "dayOfMonth" | "amount" | "transactionType" | "isPaid"
 > & {
   dayOfMonth: number;
   amount: number;
   transactionType: "income" | "expense";
+  isPaid: boolean;
 };
 
 type TransactionValidation =
@@ -61,6 +64,7 @@ function getTransactionFormValues(formData: FormData): TransactionFormValues {
   const categoryName = getStringField(formData, "category");
   const transactionDate = getStringField(formData, "date");
   const transactionType = getStringField(formData, "transactionType");
+  const paymentStatus = formData.get("isPaid");
 
   return {
     name,
@@ -68,6 +72,8 @@ function getTransactionFormValues(formData: FormData): TransactionFormValues {
     transactionDate,
     transactionType,
     isRecurring: formData.get("isRecurring") === "on",
+    isPaid:
+      paymentStatus === null ? false : paymentStatus === "on" ? true : null,
     category: categories.find(({ name }) => name === categoryName),
     dayOfMonth: getTransactionDay(transactionDate),
     amount: parseBrazilianAmount(getStringField(formData, "amount")),
@@ -77,6 +83,16 @@ function getTransactionFormValues(formData: FormData): TransactionFormValues {
 function validateTransactionFormValues(
   values: TransactionFormValues,
 ): TransactionValidation {
+  if (values.isPaid === null) {
+    return {
+      success: false,
+      state: {
+        status: "error",
+        message: "Informe um status de pagamento válido.",
+      },
+    };
+  }
+
   if (!values.name) {
     return {
       success: false,
@@ -118,6 +134,7 @@ function validateTransactionFormValues(
       dayOfMonth: values.dayOfMonth,
       amount: values.amount,
       transactionType: values.transactionType,
+      isPaid: values.isPaid,
     },
   };
 }
@@ -242,7 +259,7 @@ export async function getTransactionDetails(
     const { data: occurrence, error: occurrenceError } = await supabase
       .from("transactions")
       .select(
-        "id, name, transaction_date, amount, income, category, created_at",
+        "id, name, transaction_date, amount, income, category, created_at, is_paid",
       )
       .eq("user_id", user.id)
       .eq("recurrence_id", recurrenceId)
@@ -289,6 +306,7 @@ export async function getTransactionDetails(
       income: rule.income,
       category: rule.category,
       created_at: null,
+      is_paid: false,
     }) as {
       id: number | string;
       name: string;
@@ -297,12 +315,14 @@ export async function getTransactionDetails(
       income: boolean;
       category: string | null;
       created_at: string | null;
+      is_paid: boolean;
     };
     const amount = Number(row.amount);
     if (
       !Number.isFinite(amount) ||
       amount === 0 ||
       typeof row.income !== "boolean" ||
+      typeof row.is_paid !== "boolean" ||
       typeof row.name !== "string"
     ) {
       throw new Error("Os dados da movimentação recebida são inválidos.");
@@ -317,13 +337,14 @@ export async function getTransactionDetails(
       transactionDate: row.transaction_date,
       createdAt: row.created_at,
       isRecurring: true,
+      isPaid: row.is_paid,
     };
   }
 
   const { data, error } = await supabase
     .from("transactions")
     .select(
-      "id, name, transaction_date, amount, income, category, recurrence_id, created_at",
+      "id, name, transaction_date, amount, income, category, recurrence_id, created_at, is_paid",
     )
     .eq("user_id", user.id)
     .eq("id", transactionId)
@@ -345,12 +366,14 @@ export async function getTransactionDetails(
     category: string | null;
     recurrence_id: string | null;
     created_at: string | null;
+    is_paid: boolean;
   };
   const amount = Number(row.amount);
   if (
     !Number.isFinite(amount) ||
     amount === 0 ||
     typeof row.income !== "boolean" ||
+    typeof row.is_paid !== "boolean" ||
     typeof row.name !== "string"
   ) {
     throw new Error("Os dados da movimentação recebida são inválidos.");
@@ -367,6 +390,7 @@ export async function getTransactionDetails(
     transactionDate: row.transaction_date,
     createdAt: row.created_at,
     isRecurring: Boolean(row.recurrence_id),
+    isPaid: row.is_paid,
   };
 }
 
@@ -434,6 +458,7 @@ export async function createTransaction(
     amount: values.amount.toFixed(2),
     icon: category.icon,
     income: values.transactionType === "income",
+    is_paid: values.isPaid,
     recurrence_id: recurrenceId,
     recurrence_frequency: values.isRecurring ? "monthly" : null,
     recurrence_day_of_month: values.isRecurring ? values.dayOfMonth : null,
@@ -636,6 +661,7 @@ export async function updateTransaction(
       amount: validValues.amount.toFixed(2),
       icon: category.icon,
       income: validValues.transactionType === "income",
+      is_paid: validValues.isPaid,
     };
     const saveResult = existingOccurrence
       ? await supabase
@@ -786,6 +812,7 @@ export async function updateTransaction(
       amount: validValues.amount.toFixed(2),
       icon: category.icon,
       income: validValues.transactionType === "income",
+      is_paid: validValues.isPaid,
       recurrence_id: recurrenceId,
       recurrence_frequency: recurrenceId ? "monthly" : null,
       recurrence_day_of_month: recurrenceId ? validValues.dayOfMonth : null,
