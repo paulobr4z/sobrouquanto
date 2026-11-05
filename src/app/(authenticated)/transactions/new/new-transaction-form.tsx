@@ -4,6 +4,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
+  CheckCircle2,
   Repeat,
 } from "lucide-react";
 import Link from "next/link";
@@ -173,6 +174,26 @@ export function NewTransactionForm() {
             </div>
           </div>
         </div>
+
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
+          <input
+            type="checkbox"
+            name="isPaid"
+            className="mt-0.5 h-4 w-4 rounded border-neutral-700 bg-neutral-900 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+          />
+          <span>
+            <span className="flex items-center gap-2 text-sm font-medium text-neutral-200">
+              <CheckCircle2
+                aria-hidden="true"
+                className="h-4 w-4 text-neutral-400"
+              />
+              Marcar como pago
+            </span>
+            <span className="mt-1 block text-xs leading-5 text-neutral-500">
+              Selecione se esta movimentação já foi paga.
+            </span>
+          </span>
+        </label>
 
         <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
           <input
