@@ -226,7 +226,7 @@ export async function getTransactionDetails(
     const transactionDate = new Date(
       Date.UTC(
         occurrenceYear,
-        month,
+        month - 1,
         Math.min(
           dayOfMonth,
           new Date(Date.UTC(occurrenceYear, month, 0)).getUTCDate(),
@@ -677,6 +677,9 @@ export async function updateTransaction(
             ...occurrenceValues,
             user_id: user.id,
             recurrence_id: recurringMatch[1],
+            recurrence_frequency: "monthly",
+            recurrence_day_of_month: recurrence.day_of_month,
+            recurrence_active: recurrence.active,
           })
           .select("id")
           .maybeSingle();
