@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1100" viewBox="0 0 960 1100" fill="none">
+  <rect width="960" height="1100" rx="28" fill="#080808"/>
+  <text x="48" y="58" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="30" font-weight="700">Orçamento</text>
+  <circle cx="900" cy="40" r="22" stroke="#262626"/>
+  <text x="894" y="46" fill="#A3A3A3" font-family="Arial, sans-serif" font-size="16">⚙</text>
+
+  <rect x="28" y="84" width="904" height="990" rx="26" fill="#171717" stroke="#262626" stroke-width="2"/>
+  <text x="56" y="132" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="21" font-weight="700">Ritmo de gastos</text>
+  <text x="56" y="159" fill="#737373" font-family="Arial, sans-serif" font-size="14">05/11 – 04/12 · dia 1 de 30</text>
+
+  <text x="56" y="207" fill="#A3A3A3" font-family="Arial, sans-serif" font-size="15">Saldo disponível</text>
+  <text x="56" y="259" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="39" font-weight="700">R$ 1.307,63</text>
+  <text x="56" y="287" fill="#737373" font-family="Arial, sans-serif" font-size="15">de R$ 1.600,00 de orçamento</text>
+  <rect x="700" y="228" width="194" height="48" rx="14" fill="#00C98D"/>
+  <text x="722" y="258" fill="#052E24" font-family="Arial, sans-serif" font-size="23" font-weight="700">+</text>
+  <text x="750" y="257" fill="#052E24" font-family="Arial, sans-serif" font-size="15" font-weight="700">Atualizar gastos</text>
+
+  <rect x="56" y="316" width="848" height="168" rx="20" fill="#0A0A0A" stroke="#262626"/>
+  <rect x="82" y="340" width="152" height="34" rx="17" fill="#451F05"/>
+  <text x="99" y="362" fill="#FBBF24" font-family="Arial, sans-serif" font-size="14" font-weight="700">⚠  Acima do ritmo</text>
+  <rect x="82" y="397" width="796" height="15" rx="7.5" fill="#292929"/>
+  <rect x="82" y="397" width="143" height="15" rx="7.5" fill="#FACC15"/>
+  <line x1="106" y1="392" x2="106" y2="418" stroke="#FAFAFA" stroke-width="2"/>
+  <text x="82" y="442" fill="#A3A3A3" font-family="Arial, sans-serif" font-size="12">Orçamento consumido</text>
+  <text x="222" y="442" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="12" font-weight="700">18%</text>
+  <line x1="260" y1="430" x2="260" y2="448" stroke="#525252"/>
+  <text x="275" y="442" fill="#A3A3A3" font-family="Arial, sans-serif" font-size="12">Período transcorrido</text>
+  <text x="415" y="442" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="12" font-weight="700">3%</text>
+  <text x="82" y="470" fill="#D4D4D4" font-family="Arial, sans-serif" font-size="15">Você usou 18% do orçamento com 3% do período transcorrido.</text>
+
+  <rect x="56" y="504" width="412" height="88" rx="18" fill="#0A0A0A" stroke="#262626"/>
+  <text x="76" y="535" fill="#737373" font-family="Arial, sans-serif" font-size="14">Orçamento total</text>
+  <text x="76" y="566" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="21" font-weight="700">R$ 1.600,00</text>
+  <rect x="484" y="504" width="420" height="88" rx="18" fill="#0A0A0A" stroke="#262626"/>
+  <text x="504" y="535" fill="#737373" font-family="Arial, sans-serif" font-size="14">Total gasto</text>
+  <text x="504" y="566" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="21" font-weight="700">R$ 292,37</text>
+
+  <rect x="56" y="606" width="412" height="88" rx="18" fill="#0A0A0A" stroke="#262626"/>
+  <text x="76" y="637" fill="#737373" font-family="Arial, sans-serif" font-size="14">Média diária atual</text>
+  <text x="76" y="668" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="21" font-weight="700">R$ 292,37</text>
+  <rect x="484" y="606" width="420" height="88" rx="18" fill="#0A0A0A" stroke="#262626"/>
+  <text x="504" y="637" fill="#737373" font-family="Arial, sans-serif" font-size="14">Recomendado por dia</text>
+  <text x="504" y="668" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="21" font-weight="700">R$ 45,09</text>
+
+  <rect x="56" y="710" width="848" height="340" rx="18" fill="#0A0A0A" stroke="#262626"/>
+  <text x="78" y="744" fill="#FAFAFA" font-family="Arial, sans-serif" font-size="16" font-weight="700">Projeção de gastos no período</text>
+  <text x="78" y="768" fill="#737373" font-family="Arial, sans-serif" font-size="12">GASTOS ACUMULADOS</text>
+
+  <line x1="152" y1="800" x2="872" y2="800" stroke="#262626"/>
+  <line x1="152" y1="840" x2="872" y2="840" stroke="#262626"/>
+  <line x1="152" y1="880" x2="872" y2="880" stroke="#262626"/>
+  <line x1="152" y1="920" x2="872" y2="920" stroke="#262626"/>
+  <line x1="152" y1="960" x2="872" y2="960" stroke="#262626"/>
+  <text x="87" y="804" fill="#737373" font-family="Arial, sans-serif" font-size="11">R$ 10 mil</text>
+  <text x="94" y="844" fill="#737373" font-family="Arial, sans-serif" font-size="11">R$ 7,5 mil</text>
+  <text x="100" y="884" fill="#737373" font-family="Arial, sans-serif" font-size="11">R$ 5 mil</text>
+  <text x="94" y="924" fill="#737373" font-family="Arial, sans-serif" font-size="11">R$ 2,5 mil</text>
+  <text x="116" y="964" fill="#737373" font-family="Arial, sans-serif" font-size="11">R$ 0</text>
+
+  <line x1="152" y1="934.4" x2="872" y2="934.4" stroke="#737373" stroke-width="1.5" stroke-dasharray="5 6"/>
+  <rect x="748" y="918" width="109" height="22" rx="11" fill="#262626"/>
+  <text x="760" y="933" fill="#D4D4D4" font-family="Arial, sans-serif" font-size="10" font-weight="600">LIMITE R$ 1.600</text>
+
+  <line x1="176" y1="788" x2="176" y2="963" stroke="#525252" stroke-dasharray="4 5"/>
+  <rect x="150" y="782" width="52" height="19" rx="9.5" fill="#262626"/>
+  <text x="161" y="795" fill="#D4D4D4" font-family="Arial, sans-serif" font-size="10" font-weight="600">HOJE</text>
+  <path d="M176 955.3 C300 931 500 885 872 820.6" stroke="#60A5FA" stroke-width="4" stroke-linecap="round"/>
+  <path d="M176 955.3 C330 950 570 941 872 934.4" stroke="#34D399" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="176" cy="955.3" r="5.5" fill="#FAFAFA" stroke="#0A0A0A" stroke-width="3"/>
+  <circle cx="872" cy="820.6" r="5.5" fill="#60A5FA" stroke="#0A0A0A" stroke-width="3"/>
+  <circle cx="872" cy="934.4" r="5.5" fill="#34D399" stroke="#0A0A0A" stroke-width="3"/>
+
+  <text x="151" y="988" fill="#A3A3A3" font-family="Arial, sans-serif" font-size="11">05 nov</text>
+  <text x="488" y="988" fill="#737373" font-family="Arial, sans-serif" font-size="11">19 nov</text>
+  <text x="834" y="988" fill="#737373" font-family="Arial, sans-serif" font-size="11">04 dez</text>
+
+  <line x1="78" y1="1021" x2="106" y2="1021" stroke="#60A5FA" stroke-width="4" stroke-linecap="round"/>
+  <text x="115" y="1025" fill="#D4D4D4" font-family="Arial, sans-serif" font-size="12">Ritmo atual · R$ 8.771,10</text>
+  <line x1="389" y1="1021" x2="417" y2="1021" stroke="#34D399" stroke-width="4" stroke-linecap="round"/>
+  <text x="426" y="1025" fill="#D4D4D4" font-family="Arial, sans-serif" font-size="12">Ritmo recomendado · R$ 1.600,00</text>
+</svg>
