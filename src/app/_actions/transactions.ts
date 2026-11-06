@@ -14,6 +14,7 @@ import {
 export type TransactionFormState = {
   status: "idle" | "error" | "success";
   message: string;
+  redirectTransactionId?: string;
 };
 
 export type TransactionDetails = {
@@ -526,11 +527,12 @@ export async function updateTransaction(
     );
     if (
       recurrenceValueScope !== "month" &&
-      recurrenceValueScope !== "month-and-future"
+      recurrenceValueScope !== "month-and-future" &&
+      recurrenceValueScope !== "stop"
     ) {
       return {
         status: "error",
-        message: "Selecione como aplicar o novo valor.",
+        message: "Selecione como aplicar as alterações.",
       };
     }
 
@@ -663,10 +665,40 @@ export async function updateTransaction(
       income: validValues.transactionType === "income",
       is_paid: validValues.isPaid,
     };
+    let recurrenceStopped = false;
+    if (recurrenceValueScope === "stop" && recurrence.active) {
+      const { data: stoppedRecurrence, error: stopError } = await supabase
+        .from("transaction_recurrences")
+        .update({ active: false })
+        .eq("id", recurringMatch[1])
+        .eq("user_id", user.id)
+        .select("id")
+        .maybeSingle();
+
+      if (stopError || !stoppedRecurrence) {
+        console.error("Failed to stop transaction recurrence.", stopError);
+        return {
+          status: "error",
+          message: "Não foi possível remover a recorrência. Tente novamente.",
+        };
+      }
+      recurrenceStopped = true;
+    }
+
     const saveResult = existingOccurrence
       ? await supabase
           .from("transactions")
-          .update(occurrenceValues)
+          .update(
+            recurrenceValueScope === "stop"
+              ? {
+                  ...occurrenceValues,
+                  recurrence_id: null,
+                  recurrence_frequency: null,
+                  recurrence_day_of_month: null,
+                  recurrence_active: null,
+                }
+              : occurrenceValues,
+          )
           .eq("id", existingOccurrence.id)
           .eq("user_id", user.id)
           .select("id")
@@ -676,10 +708,14 @@ export async function updateTransaction(
           .insert({
             ...occurrenceValues,
             user_id: user.id,
-            recurrence_id: recurringMatch[1],
-            recurrence_frequency: "monthly",
-            recurrence_day_of_month: recurrence.day_of_month,
-            recurrence_active: recurrence.active,
+            recurrence_id:
+              recurrenceValueScope === "stop" ? null : recurringMatch[1],
+            recurrence_frequency:
+              recurrenceValueScope === "stop" ? null : "monthly",
+            recurrence_day_of_month:
+              recurrenceValueScope === "stop" ? null : recurrence.day_of_month,
+            recurrence_active:
+              recurrenceValueScope === "stop" ? null : recurrence.active,
           })
           .select("id")
           .maybeSingle();
@@ -689,6 +725,26 @@ export async function updateTransaction(
         "Failed to save recurring transaction occurrence.",
         saveResult.error,
       );
+      if (recurrenceStopped) {
+        const { data: restoredRecurrence, error: restoreError } = await supabase
+          .from("transaction_recurrences")
+          .update({ active: true })
+          .eq("id", recurringMatch[1])
+          .eq("user_id", user.id)
+          .select("id")
+          .maybeSingle();
+        if (restoreError || !restoredRecurrence) {
+          console.error(
+            "Failed to restore transaction recurrence after occurrence save failed.",
+            restoreError,
+          );
+          return {
+            status: "error",
+            message:
+              "Não foi possível salvar o lançamento e restaurar a recorrência. Entre em contato com o suporte.",
+          };
+        }
+      }
       return {
         status: "error",
         message: "Não foi possível salvar a ocorrência. Tente novamente.",
@@ -730,9 +786,14 @@ export async function updateTransaction(
     return {
       status: "success",
       message:
-        recurrenceValueScope === "month-and-future"
-          ? "Valor atualizado neste mês e nos próximos."
-          : "Ocorrência salva com sucesso.",
+        recurrenceValueScope === "stop"
+          ? "Recorrência removida. Este lançamento foi mantido."
+          : recurrenceValueScope === "month-and-future"
+            ? "Valor atualizado neste mês e nos próximos."
+            : "Ocorrência salva com sucesso.",
+      ...(recurrenceValueScope === "stop"
+        ? { redirectTransactionId: String(saveResult.data.id) }
+        : {}),
     };
   }
 

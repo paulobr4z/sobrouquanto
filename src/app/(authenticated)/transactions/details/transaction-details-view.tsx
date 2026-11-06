@@ -89,9 +89,20 @@ export function TransactionDetailsView({
     if (updateState.status === "success") {
       invalidate();
       setIsEditing(false);
-      router.refresh();
+      if (updateState.redirectTransactionId) {
+        router.replace(
+          `/transactions/details?id=${encodeURIComponent(updateState.redirectTransactionId)}`,
+        );
+      } else {
+        router.refresh();
+      }
     }
-  }, [invalidate, router, updateState.status]);
+  }, [
+    invalidate,
+    router,
+    updateState.redirectTransactionId,
+    updateState.status,
+  ]);
 
   useEffect(() => {
     setAmountInput(formatAmountForInput(Math.abs(transaction.amount)));
@@ -237,7 +248,7 @@ export function TransactionDetailsView({
             {transaction.isRecurring && (
               <fieldset className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4">
                 <legend className="px-1 text-sm font-medium text-neutral-200">
-                  Aplicar novo valor
+                  Aplicar alterações
                 </legend>
                 <div className="mt-1 space-y-3">
                   <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
@@ -262,6 +273,21 @@ export function TransactionDetailsView({
                       <span className="mt-1 block text-xs leading-5 text-neutral-500">
                         Usa este valor a partir deste mês, até você alterá-lo
                         novamente.
+                      </span>
+                    </span>
+                  </label>
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-neutral-300">
+                    <input
+                      type="radio"
+                      name="recurrenceValueScope"
+                      value="stop"
+                      className="mt-0.5 h-4 w-4 accent-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    />
+                    <span>
+                      Remover recorrência
+                      <span className="mt-1 block text-xs leading-5 text-neutral-500">
+                        Mantém este lançamento e interrompe as próximas
+                        ocorrências.
                       </span>
                     </span>
                   </label>
