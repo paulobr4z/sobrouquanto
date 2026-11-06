@@ -25,9 +25,12 @@ export default function AuthenticatedLayout({
             href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap"
           />
           <header className="fixed left-0 top-0 z-80 flex min-h-16 w-full items-center border-b border-neutral-800 bg-neutral-950 px-4">
-            <span className="text-lg font-bold leading-tight text-neutral-50">
+            <Link
+              href="/"
+              className="text-lg font-bold leading-tight text-neutral-50"
+            >
               Sobrou Quanto?
-            </span>
+            </Link>
             <Link
               href="/transactions/new"
               aria-label="Lançar movimentação"
